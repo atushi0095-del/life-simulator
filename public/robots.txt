@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+# Simulation results are client-rendered; no need to block

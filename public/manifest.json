@@ -1,0 +1,11 @@
+{
+  "name": "人生資金シミュレーター",
+  "short_name": "人生資金",
+  "description": "将来必要な資産と見込み資産を3シナリオで比較し、家族と共有できるシミュレーターです。",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#ffffff",
+  "theme_color": "#0284c7",
+  "lang": "ja",
+  "icons": []
+}

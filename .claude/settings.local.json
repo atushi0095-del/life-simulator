@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app@14 . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-turbo --yes)",
+      "Read(//usr/local/bin/**)",
+      "Bash(echo \"PATH=$PATH\")",
+      "Read(//c/Program Files/**)",
+      "Read(//c/Users/atush/AppData/Roaming/**)",
+      "Read(//c/Users/atush/AppData/Local/**)",
+      "Bash(grep -h \"^import.*from ''recharts''\" /c/Users/atush/Desktop/kindle/金融アプリ/src/components/results/AssetProjectionChart.tsx)",
+      "Bash(grep -E \"export.*runAllScenarios|export.*runMonteCarlo\" /c/Users/atush/Desktop/kindle/金融アプリ/src/lib/simulation/*.ts)",
+      "Bash(npx tsc:*)",
+      "Bash(node ./node_modules/.bin/tsc --noEmit)",
+      "Bash(where node:*)",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(cmd //c \"cd /d C:\\\\Users\\\\atush\\\\Desktop\\\\kindle\\\\金融アプリ && node_modules\\\\.bin\\\\tsc --noEmit 2>&1\")",
+      "Bash(cmd //c \"cd /d \"\"C:\\\\Users\\\\atush\\\\Desktop\\\\kindle\\\\金融アプリ\"\" && npm run build 2>&1\")",
+      "Bash(powershell -Command \"cd ''C:\\\\Users\\\\atush\\\\Desktop\\\\kindle\\\\金融アプリ''; npm run build 2>&1 | Select-Object -Last 40\")",
+      "Bash(powershell -Command \"& { $env:PATH += '';C:\\\\Program Files\\\\nodejs''; cd ''C:\\\\Users\\\\atush\\\\Desktop\\\\kindle\\\\金融アプリ''; npm run build 2>&1 | Select-Object -Last 40 }\")",
+      "Bash(powershell -Command \"& { $env:PATH += '';C:\\\\Program Files\\\\nodejs''; cd ''C:\\\\Users\\\\atush\\\\Desktop\\\\kindle\\\\金融アプリ''; npm run build 2>&1 | Select-Object -Last 50 }\")",
+      "Bash(powershell -Command \"& { $env:PATH += '';C:\\\\Program Files\\\\nodejs''; cd ''C:\\\\Users\\\\atush\\\\Desktop\\\\kindle\\\\金融アプリ''; npm run build 2>&1 | Select-Object -Last 30 }\")",
+      "Bash(npm run:*)",
+      "Bash(cmd.exe /c \"cd /d \"\"C:\\\\Users\\\\atush\\\\Desktop\\\\kindle\\\\金融アプリ\"\" && npm run build 2>&1\")"
+    ]
+  }
+}

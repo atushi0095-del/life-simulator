@@ -10,8 +10,8 @@ export default function TopPage() {
           <span className="text-xs text-brand-700 font-medium">一般的なシミュレーション・無料</span>
         </div>
         <h1 className="text-3xl font-bold text-gray-900 leading-tight mb-3">
-          将来に備えながら、<br />
-          今も<span className="text-brand-600">豊かに使える金額</span>が<br />
+          ライフプランシミュレーション<br />
+          老後資金も<span className="text-brand-600">今も豊かに使える金額</span>が<br />
           わかる
         </h1>
         <p className="text-gray-500 text-base mb-6 leading-relaxed">

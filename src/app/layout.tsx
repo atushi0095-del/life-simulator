@@ -33,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <SimulationProvider>
           {children}
+        <Analytics />
         </SimulationProvider>
       </body>
     </html>

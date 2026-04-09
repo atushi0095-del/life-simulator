@@ -32,8 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ja">
       <body>
         <SimulationProvider>
-          {children}
-        <Analytics />
+          {children}       
         </SimulationProvider>
       </body>
     </html>

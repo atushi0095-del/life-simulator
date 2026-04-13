@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { SimulationProvider } from '@/context/SimulationContext';
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata: Metadata = {
   title: '人生資金シミュレーター',
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SimulationProvider>
           {children}       
         </SimulationProvider>
+        <Analytics />
       </body>
     </html>
   );

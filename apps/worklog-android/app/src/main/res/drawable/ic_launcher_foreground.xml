@@ -1,0 +1,15 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Clock face, sized to the 72dp adaptive-icon safe zone. -->
+    <group android:translateX="18" android:translateY="18">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M36,6C19.43,6 6,19.43 6,36s13.43,30 30,30 30,-13.43 30,-30S52.57,6 36,6zM36,60c-13.25,0 -24,-10.75 -24,-24s10.75,-24 24,-24 24,10.75 24,24 -10.75,24 -24,24z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M38.25,20.25h-4.5v17.25l14.4,8.64 2.25,-3.69 -12.15,-7.2z" />
+    </group>
+</vector>

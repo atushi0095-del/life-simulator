@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Work history and settings restore onto a new device. -->
+    <include domain="database" path="worklog.db" />
+    <include domain="file" path="datastore/" />
+</full-backup-content>

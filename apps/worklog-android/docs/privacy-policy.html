@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WorkLog プライバシーポリシー / Privacy Policy</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1b1c1e;
+    --muted: #5c5f63;
+    --rule: #dfe3e6;
+    --accent: #00696e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #101416;
+      --fg: #e3e2e6;
+      --muted: #a8adb2;
+      --rule: #2b3134;
+      --accent: #4fd8df;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans",
+      "Noto Sans JP", "Segoe UI", Roboto, sans-serif;
+    line-height: 1.75;
+    font-size: 16px;
+  }
+  main { max-width: 720px; margin: 0 auto; padding: 48px 16px 96px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  h2 {
+    font-size: 1.15rem;
+    margin: 40px 0 8px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+  }
+  h3 { font-size: 1rem; margin: 24px 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 8px; }
+  .updated { color: var(--muted); font-size: 0.875rem; }
+  ul { padding-left: 1.25em; }
+  li { margin: 4px 0; }
+  a { color: var(--accent); }
+  .lang {
+    margin: 32px 0 0;
+    padding: 12px 16px;
+    border-left: 3px solid var(--accent);
+    color: var(--muted);
+  }
+  code {
+    background: var(--rule);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+</style>
+</head>
+<body>
+<main>
+
+<h1>WorkLog プライバシーポリシー</h1>
+<p class="sub">アプリ名: WorkLog ― 今日何時間働いた？ / パッケージ名: <code>com.ajuworks.worklog</code></p>
+<p class="updated">最終更新日: 2026年9月20日</p>
+
+<h2>1. 基本方針</h2>
+<p>
+WorkLog（以下「本アプリ」）は、利用者が自分の勤務時間を記録するためのアプリです。
+本アプリは、利用者の勤務記録を開発者のサーバーへ送信しません。
+また、本アプリの利用にあたってアカウント登録は必要ありません。
+</p>
+
+<h2>2. 取得しない情報</h2>
+<p>本アプリは、以下の情報を取得しません。</p>
+<ul>
+  <li>氏名</li>
+  <li>メールアドレス</li>
+  <li>電話番号</li>
+  <li>位置情報</li>
+  <li>勤務先の名称・住所</li>
+  <li>連絡先、通話履歴、SMS</li>
+  <li>端末内の写真・動画・音声</li>
+</ul>
+<p>
+位置情報を用いた自動打刻などの機能は実装していません。
+本アプリは位置情報に関する権限を一切要求しません。
+</p>
+
+<h2>3. 端末内に保存される情報</h2>
+<p>本アプリは、以下の情報を利用者の端末内にのみ保存します。</p>
+<ul>
+  <li>出勤日時・退勤日時</li>
+  <li>休憩の開始日時・終了日時</li>
+  <li>勤務記録に付随するメモ（利用者が入力した場合）</li>
+  <li>アプリの設定（週の開始曜日、打刻忘れ通知の有無と時間）</li>
+</ul>
+<p>
+これらは端末内のデータベースおよび設定ファイルに保存され、
+開発者が閲覧・取得することはできません。
+本アプリをアンインストールすると、これらのデータは端末から削除されます。
+</p>
+<p>
+なお、利用者が Android の標準バックアップ機能（Google アカウントへのバックアップ）を
+有効にしている場合、これらのデータは Google のバックアップ対象となることがあります。
+これは Android の標準機能によるものであり、開発者がデータを受け取るものではありません。
+バックアップの設定は端末の設定から変更できます。
+</p>
+
+<h2>4. CSV の書き出しについて</h2>
+<p>
+本アプリは、勤務記録を CSV 形式で書き出す機能を備えています。
+CSV ファイルは端末内で生成され、
+<strong>利用者が共有操作を行ったときにのみ</strong>、
+Android の共有シートを通じて利用者が選択したアプリ
+（ファイル、Gmail、Google ドライブなど）へ渡されます。
+</p>
+<p>
+本アプリが自動的に CSV を送信することはありません。
+また、本アプリは Google Drive API 等の外部ストレージ API を直接利用していません。
+共有先のアプリにおける取り扱いは、それぞれのアプリのプライバシーポリシーに従います。
+</p>
+
+<h2>5. 広告について</h2>
+<p>
+本アプリは、Google が提供する広告配信サービス「Google AdMob」を利用しています。
+広告の配信のために、Google Mobile Ads SDK が広告識別子（Advertising ID）などの
+広告関連データを処理する場合があります。
+これらのデータは Google によって取り扱われ、開発者が個人を特定できる形で
+受け取ることはありません。
+</p>
+<p>
+Google による情報の利用については、以下をご確認ください。<br>
+<a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">
+Google のサービスを使用するサイトやアプリから収集した情報の Google による使用</a>
+</p>
+<p>
+広告のパーソナライズに関する設定は、端末の設定（広告 ID のリセット等）、
+および本アプリの「設定 &gt; 広告のプライバシー設定」から変更できます。
+</p>
+
+<h3>同意の取得について</h3>
+<p>
+欧州経済領域（EEA）、英国など、同意の取得が求められる地域では、
+Google の User Messaging Platform (UMP) SDK を用いて広告に関する同意を取得します。
+同意の取得に失敗した場合でも、本アプリの勤務記録機能は通常どおり利用できます。
+</p>
+
+<h2>6. 通知について</h2>
+<p>
+本アプリは、退勤の打刻が記録されていない場合に、端末内でローカル通知を表示することがあります。
+この通知は端末内で完結しており、サーバーからのプッシュ通知は使用していません。
+通知の有無と通知までの時間は、設定画面から変更できます。
+</p>
+
+<h2>7. 権限について</h2>
+<p>本アプリが要求する権限は次のとおりです。</p>
+<ul>
+  <li><code>POST_NOTIFICATIONS</code> — 打刻忘れ通知を表示するために使用します。
+      許可しなくても、通知以外のすべての機能を利用できます。</li>
+  <li><code>INTERNET</code> / <code>ACCESS_NETWORK_STATE</code> —
+      広告の配信のために Google Mobile Ads SDK が必要とします。
+      勤務記録の送信には使用しません。インターネットに接続していなくても、
+      出勤・退勤・休憩・集計・履歴・CSV 書き出し・ウィジェットはすべて利用できます。</li>
+</ul>
+
+<h2>8. 児童のプライバシー</h2>
+<p>
+本アプリは 13 歳未満の児童を対象としたアプリではなく、
+児童から意図的に個人情報を収集することはありません。
+</p>
+
+<h2>9. 本ポリシーの変更</h2>
+<p>
+本ポリシーの内容は、法令の変更や本アプリの機能追加に伴い変更されることがあります。
+重要な変更を行う場合は、本ページ上で告知します。
+</p>
+
+<h2>10. お問い合わせ</h2>
+<p>
+本アプリおよび本ポリシーに関するお問い合わせは、以下までご連絡ください。<br>
+開発者: Ajuworks<br>
+連絡先: <a href="mailto:atushi0095@gmail.com">atushi0095@gmail.com</a>
+</p>
+
+<p class="lang">English version follows. / 英語版は以下に続きます。</p>
+
+<h1 id="en" lang="en">WorkLog Privacy Policy</h1>
+<p class="sub" lang="en">App: WorkLog — How long did you work today? / Package: <code>com.ajuworks.worklog</code></p>
+<p class="updated" lang="en">Last updated: 20 September 2026</p>
+
+<div lang="en">
+
+<h2>1. Overview</h2>
+<p>
+WorkLog ("the app") helps you record how long you worked. The app does not
+send your work records to the developer's servers, and it does not require an
+account.
+</p>
+
+<h2>2. Information the app does not collect</h2>
+<ul>
+  <li>Your name</li>
+  <li>Email address</li>
+  <li>Phone number</li>
+  <li>Location</li>
+  <li>Your employer's name or address</li>
+  <li>Contacts, call logs or SMS</li>
+  <li>Photos, videos or audio on your device</li>
+</ul>
+<p>
+The app does not implement location-based automatic clock-in, and requests no
+location permission of any kind.
+</p>
+
+<h2>3. Information stored on your device</h2>
+<ul>
+  <li>Clock-in and clock-out times</li>
+  <li>Break start and end times</li>
+  <li>Notes you attach to a record</li>
+  <li>App settings (first day of the week, clock-out reminder settings)</li>
+</ul>
+<p>
+This data is stored only in the app's local database and settings file. The
+developer cannot read or retrieve it. Uninstalling the app removes it from
+your device.
+</p>
+<p>
+If you have enabled Android's built-in backup to your Google account, this data
+may be included in that backup. This is a standard Android feature and does not
+transmit the data to the developer. You can change backup behaviour in your
+device settings.
+</p>
+
+<h2>4. CSV export</h2>
+<p>
+The app can export your records as a CSV file. The file is generated on your
+device and is passed to another app — Files, Gmail, Google Drive or whatever
+you choose — <strong>only when you actively share it</strong> through the
+Android share sheet. The app never uploads CSV files on its own, and it does
+not use Google Drive or any other storage API directly. Once shared, the
+receiving app's own privacy policy applies.
+</p>
+
+<h2>5. Advertising</h2>
+<p>
+The app displays ads through Google AdMob. To serve ads, the Google Mobile Ads
+SDK may process advertising-related data such as your advertising identifier.
+This data is handled by Google; the developer does not receive it in a
+personally identifiable form. See
+<a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">
+How Google uses information from sites or apps that use our services</a>.
+</p>
+<p>
+You can change ad personalisation from your device settings and from
+<em>Settings &gt; Ad privacy settings</em> inside the app.
+</p>
+
+<h3>Consent</h3>
+<p>
+In regions where consent is required, including the European Economic Area and
+the United Kingdom, the app uses Google's User Messaging Platform (UMP) SDK to
+request consent for advertising. If consent cannot be gathered, the app's
+time-tracking features continue to work normally.
+</p>
+
+<h2>6. Notifications</h2>
+<p>
+The app may show a local notification if no clock-out has been recorded. These
+notifications are generated entirely on your device; no server push is used.
+You can turn them off, or change the delay, in Settings.
+</p>
+
+<h2>7. Permissions</h2>
+<ul>
+  <li><code>POST_NOTIFICATIONS</code> — used only for the clock-out reminder.
+      Declining it leaves every other feature fully usable.</li>
+  <li><code>INTERNET</code> / <code>ACCESS_NETWORK_STATE</code> — required by
+      the Google Mobile Ads SDK to serve ads. They are never used to transmit
+      your work records. Clocking in and out, breaks, totals, history, CSV
+      export and the widget all work with no network connection.</li>
+</ul>
+
+<h2>8. Children's privacy</h2>
+<p>
+The app is not directed at children under 13 and does not knowingly collect
+personal information from them.
+</p>
+
+<h2>9. Changes to this policy</h2>
+<p>
+This policy may change as the law or the app changes. Significant changes will
+be announced on this page.
+</p>
+
+<h2>10. Contact</h2>
+<p>
+Developer: Ajuworks<br>
+Contact: <a href="mailto:atushi0095@gmail.com">atushi0095@gmail.com</a>
+</p>
+
+</div>
+
+</main>
+</body>
+</html>

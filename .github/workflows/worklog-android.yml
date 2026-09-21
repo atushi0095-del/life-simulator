@@ -61,33 +61,6 @@ jobs:
             "build-tools;36.0.0"
           sdkmanager --list_installed
 
-      # Google Maven is unreachable from the sandbox that edits this repo, so
-      # dependency versions cannot be checked there. Print the current ones
-      # here. Temporary - remove once the versions are settled.
-      - name: Probe dependency versions
-        continue-on-error: true
-        run: |
-          set -uo pipefail
-          base=https://dl.google.com/dl/android/maven2
-          probe() {
-            printf '%-45s ' "$1"
-            curl -sf "$base/$(echo "$1" | tr '.:' '//')/maven-metadata.xml" \
-              | grep -oE '<version>[^<]+</version>' | sed 's/<[^>]*>//g' \
-              | grep -vE 'alpha|beta|rc|dev' | tail -3 | tr '\n' ' '
-            echo
-          }
-          probe androidx.compose:compose-bom
-          probe androidx.room:room-runtime
-          probe androidx.glance:glance-appwidget
-          probe androidx.work:work-runtime-ktx
-          probe androidx.lifecycle:lifecycle-runtime-ktx
-          probe androidx.activity:activity-compose
-          probe androidx.navigation:navigation-compose
-          probe androidx.datastore:datastore-preferences
-          probe androidx.core:core-ktx
-          probe com.google.android.gms:play-services-ads
-          probe com.google.android.ump:user-messaging-platform
-
       - name: Confirm the SDK is visible to Gradle
         working-directory: ${{ env.PROJECT_DIR }}
         run: |
@@ -226,3 +199,31 @@ jobs:
             apps/worklog-android/core/build/reports/**
             apps/worklog-android/app/build/test-results/**
             apps/worklog-android/core/build/test-results/**
+
+      # Google Maven is unreachable from the sandbox that edits this repo, so
+      # dependency versions cannot be checked there. Print the current ones
+      # here. Temporary - remove once the versions are settled.
+      - name: Probe dependency versions
+        if: always()
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          base=https://dl.google.com/dl/android/maven2
+          probe() {
+            printf '%-45s ' "$1"
+            curl -sf "$base/$(echo "$1" | tr '.:' '//')/maven-metadata.xml" \
+              | grep -oE '<version>[^<]+</version>' | sed 's/<[^>]*>//g' \
+              | grep -vE 'alpha|beta|rc|dev' | tail -3 | tr '\n' ' '
+            echo
+          }
+          probe androidx.compose:compose-bom
+          probe androidx.room:room-runtime
+          probe androidx.glance:glance-appwidget
+          probe androidx.work:work-runtime-ktx
+          probe androidx.lifecycle:lifecycle-runtime-ktx
+          probe androidx.activity:activity-compose
+          probe androidx.navigation:navigation-compose
+          probe androidx.datastore:datastore-preferences
+          probe androidx.core:core-ktx
+          probe com.google.android.gms:play-services-ads
+          probe com.google.android.ump:user-messaging-platform

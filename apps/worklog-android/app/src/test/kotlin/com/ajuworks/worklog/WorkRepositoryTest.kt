@@ -113,22 +113,25 @@ class WorkRepositoryTest {
 
     @Test
     fun `breaks can be taken more than once in a shift`() = runTest {
+        // The spec's worked example, punched rather than typed:
+        //   09:00 -> 18:00, breaks 12:00-12:45 and 15:00-15:15, = 8 hours.
         repository.clockIn()
-        advance(Duration.ofHours(3))
+        advance(Duration.ofHours(3)) // 12:00
         repository.startBreak()
-        advance(Duration.ofMinutes(45))
+        advance(Duration.ofMinutes(45)) // 12:45
         repository.endBreak()
-        advance(Duration.ofHours(2).plusMinutes(15))
+        advance(Duration.ofHours(2).plusMinutes(15)) // 15:00
         repository.startBreak()
-        advance(Duration.ofMinutes(15))
+        advance(Duration.ofMinutes(15)) // 15:15
         repository.endBreak()
-        advance(Duration.ofHours(3))
+        advance(Duration.ofHours(2).plusMinutes(45)) // 18:00
         repository.clockOut()
 
         val record = repository.allRecords.first().single()
         assertThat(record.breaks).hasSize(2)
+        assertThat(record.grossMillis(Stamp.now(clock))).isEqualTo(Duration.ofHours(9).toMillis())
         assertThat(record.breakMillis(Stamp.now(clock))).isEqualTo(Duration.ofHours(1).toMillis())
-        assertThat(record.netMillis(Stamp.now(clock))).isEqualTo(Duration.ofHours(8).plusMinutes(30).toMillis())
+        assertThat(record.netMillis(Stamp.now(clock))).isEqualTo(Duration.ofHours(8).toMillis())
     }
 
     @Test

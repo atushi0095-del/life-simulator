@@ -234,8 +234,8 @@ jobs:
           probe com.google.android.ump:user-messaging-platform
 
       # Artifact storage is not reachable from the environment that maintains
-      # this workflow, so a failing test has to be legible in the log itself.
-      - name: Summarize test failures
+      # this workflow, so a failure has to be legible in the log itself.
+      - name: Summarize failures
         if: failure()
         working-directory: ${{ env.PROJECT_DIR }}
         run: |
@@ -262,4 +262,29 @@ jobs:
                       print()
           if not found:
               print("No failing test cases found in the JUnit XML.")
+
+          print()
+          print("#" * 78)
+          print("# Lint")
+          print("#" * 78)
+          lint = False
+          for path in sorted(glob.glob("**/reports/lint-results*.xml", recursive=True)):
+              try:
+                  root = ET.parse(path).getroot()
+              except ET.ParseError:
+                  continue
+              for issue in root.iter("issue"):
+                  severity = issue.get("severity", "")
+                  if severity not in ("Error", "Fatal"):
+                      continue
+                  lint = True
+                  loc = issue.find("location")
+                  where = ""
+                  if loc is not None:
+                      where = f'{loc.get("file", "")}:{loc.get("line", "?")}'
+                  print(f'[{severity}] {issue.get("id")}  {where}')
+                  print(f'    {(issue.get("message") or "").strip()[:400]}')
+          if not lint:
+              print("No lint errors found (the failure may be a warning promoted by "
+                    "warningsAsErrors; see the uploaded report).")
           PY

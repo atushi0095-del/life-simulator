@@ -81,7 +81,6 @@
     <string name="notification_channel_name">打刻忘れ通知</string>
     <string name="notification_channel_description">退勤の記録がないときにお知らせします</string>
     <string name="reminder_title">退勤の記録を忘れていませんか？</string>
-    <string name="reminder_body">出勤から%1$d時間が経過しています。</string>
 
     <string name="widget_description">勤務状況と経過時間を表示し、1タップで打刻します。</string>
 </resources>

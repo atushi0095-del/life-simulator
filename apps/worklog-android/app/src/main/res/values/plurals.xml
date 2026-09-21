@@ -10,4 +10,7 @@
     <plurals name="issue_too_long">
         <item quantity="other">勤務時間が%1$d時間です。入力を確認してください。</item>
     </plurals>
+    <plurals name="reminder_body">
+        <item quantity="other">出勤から%1$d時間が経過しています。</item>
+    </plurals>
 </resources>

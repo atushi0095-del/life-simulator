@@ -77,7 +77,6 @@
     <string name="notification_channel_name">Clock-out reminder</string>
     <string name="notification_channel_description">Tells you when no clock-out has been recorded</string>
     <string name="reminder_title">Did you forget to clock out?</string>
-    <string name="reminder_body">It has been %1$d hours since you clocked in.</string>
 
     <string name="widget_description">Shows your status and elapsed time, and punches in one tap.</string>
 </resources>

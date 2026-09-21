@@ -101,7 +101,13 @@ class ClockOutReminderWorker(
         val notification = NotificationCompat.Builder(applicationContext, ClockOutReminder.CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(applicationContext.getString(R.string.reminder_title))
-            .setContentText(applicationContext.getString(R.string.reminder_body, hours))
+            .setContentText(
+                applicationContext.resources.getQuantityString(
+                    R.plurals.reminder_body,
+                    hours.toInt(),
+                    hours,
+                )
+            )
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(intent)

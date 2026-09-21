@@ -12,4 +12,8 @@
         <item quantity="one">This shift is %1$d hour long. Please check the times.</item>
         <item quantity="other">This shift is %1$d hours long. Please check the times.</item>
     </plurals>
+    <plurals name="reminder_body">
+        <item quantity="one">It has been %1$d hour since you clocked in.</item>
+        <item quantity="other">It has been %1$d hours since you clocked in.</item>
+    </plurals>
 </resources>

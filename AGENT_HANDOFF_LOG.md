@@ -221,3 +221,89 @@ import 漏れ・API シグネチャ違いが残っている前提で取り掛か
 それに加えて、前回エントリに挙げた
 署名鍵の確認・AdMob 本番 ID・プライバシーポリシーのホスティング・
 実機スクリーンショット・Play Console 作業は未着手のまま。
+
+---
+
+## 2026-09-21 (2) — GitHub Actions でビルド。**AAB 生成に到達**
+
+担当: Claude Code (session `018TMiDr32NLsyJ9ej6wry2a`)
+ブランチ: `claude/worklog-android-app-xyu3yf`
+
+### 結論
+
+Claude の実行環境では `dl.google.com` が遮断されたままなので、ビルドを
+**GitHub Actions へ移した**。`.github/workflows/worklog-android.yml` を追加。
+
+**結果: 全ステップ green。release AAB の生成まで到達した。**
+
+core test → assembleDebug → app unit test → lint → assembleRelease (R8) →
+bundleRelease がすべて成功。
+
+### 実コンパイルで発見・修正した不具合
+
+`:app` はこれまで一度もコンパイルされていなかったため、以下は **実際に動かして
+初めて分かったもの**。14 回 run を回して 1 つずつ潰した。
+
+| # | 症状 | 原因 | 対応 |
+|---|---|---|---|
+| 1 | `:app:kspDebugKotlin` 失敗。Ads SDK の `.kotlin_module` が全て読めない | play-services-ads 25.5.0 は Kotlin metadata 2.3.0。Kotlin 2.0.21 は 2.0.0 までしか読めない | Kotlin 2.0.21 → **2.3.21**、KSP → **2.3.12**（KSP は 2.3.0 から Kotlin 版数を冠さない独立採番に変わっていた） |
+| 2 | `:app` の設定自体が失敗 | Kotlin 2.3 で `android { kotlinOptions { } }` が削除（警告ではなくエラー） | トップレベルの `kotlin { compilerOptions { jvmTarget } }` へ移行 |
+| 3 | `kspDebugKotlin` が `IllegalStateException: unexpected jvm signature V` でクラッシュ | Room 2.6.1 の processor が KSP2 に非対応 | Room **2.7.2** へ |
+| 4 | Robolectric が 1 件も実行できない。`targetSdkVersion=36 > maxSdkVersion=35` | Robolectric 4.14.1 は SDK 35 まで | Robolectric **4.17** へ（`@Config(sdk=35)` で逃げると、狙っている targetSdk と違う OS でテストすることになるので採用せず） |
+| 5 | `Android SDK 36 requires Java 21 (have Java 17)` | SDK 36 の android-all は Java 21 bytecode | CI の JDK を **21** へ。アプリの bytecode target は 17 のまま（別設定） |
+| 6 | 全テストが setup で落ちる。`Failed to interact with raw FileDescriptor internals` | Android 16 の `ApplicationSharedMemory` が `jdk.internal.access.SharedSecrets` を触る。modular JDK では既定で拒否 | unit test JVM にのみ `--add-exports` / `--add-opens` を付与 |
+| 7 | 全テストが StackOverflow。同じフレームの無限反復 | **テスト側のバグ。** `object : Clock()` の中で `zone` と書くと、Clock の `getZone()` 由来の合成プロパティに束縛され、override が自分を呼ぶ | `this@WorkRepositoryTest.zone` に修飾 |
+| 8 | `breaks can be taken more than once in a shift` が 8h30m を期待して 8h15m | **テスト側の計算ミス。** 打刻の合計は 9h15m、休憩 1h なので 8h15m が正しい | 仕様書の例（09:00→18:00 / 休憩 12:00-12:45・15:00-15:15 = 8時間）に合わせて timeline を修正。gross も assert するようにした |
+| 9 | lint が 9 件で失敗（`warningsAsErrors = true`） | 下記 | 下記 |
+
+lint の内訳と対応:
+
+- **InvalidFragmentVersionForActivityResult (Fatal)** — 推移的に fragment < 1.3.0 が入る。
+  `registerForActivityResult` の最低要件。dependency **constraint** で下限だけ 1.3.0 に引き上げ
+  （上限は固定しないので、他が新しい fragment を要求すればそちらが勝つ）。
+- **PluralsCandidate ×6** — 実際の個数（勤務日数・通知までの時間・勤務時間・通知本文）は
+  `<plurals>` へ移行。英語は one/other、日本語は other のみ。
+  ただし「%d番目の休憩」は個数ではなく**序数**なので plurals にするのは誤り。
+  `tools:ignore` + コメントで明示。
+- **ObsoleteSdkInt** — minSdk 26 なので `mipmap-anydpi-v26` → `mipmap-anydpi` にリネーム。
+- **UnusedResources** — `app_tagline` を削除（ストア文言は `store/store-listing.txt` にある）。
+- **UseKtx** — `Uri.parse` → `String.toUri`。
+- **UnusedAttribute ×2** — `targetCellWidth/Height` は API 31+ 用で意図的。局所的に ignore。
+- **OldTargetApi** — lint が targetSdk より上の API を知っているため発火。
+  36 は現在 Play が新規アプリに要求する水準なので、lint 設定で無効化。
+
+### 確認済みバージョン（CI の probe ステップ出力、2026-09-21 時点の最新）
+
+```
+compose-bom      2026.09.00   room            2.8.5
+glance           1.2.0        work            2.11.2
+lifecycle        2.11.0       activity-compose 1.13.0
+navigation       2.10.1       datastore       1.2.1
+core-ktx         1.19.0       fragment        1.9.0
+play-services-ads 25.5.0      ump             4.0.0
+```
+
+本アプリは動作確認できた組み合わせを維持しており、上記最新への一括更新は
+**あえて行っていない**（今回の目的は AAB 生成であり、機能追加・一括更新ではないため）。
+更新する場合は CI で 1 つずつ確認すること。
+
+### 署名について
+
+**既存の Ajuworks upload key は見つかっていない。** GitHub Secrets にも未設定。
+そのため現在の AAB は **debug 署名**であり、**Play へアップロードできない**。
+
+鍵を用意したら以下の Secrets を設定すれば、同じ workflow がそのまま署名済み AAB を出す:
+
+- `WORKLOG_KEYSTORE_BASE64`（`base64 -w0 upload-keystore.jks` の出力）
+- `WORKLOG_KEYSTORE_PASSWORD` / `WORKLOG_KEY_ALIAS` / `WORKLOG_KEY_PASSWORD`
+
+**新しい鍵は作っていない。** 既存鍵との競合を避けるため、鍵の用意は人間の判断に委ねる。
+
+### まだ残っている人間の作業
+
+1. upload keystore の用意と Secrets 登録（→ 署名済み AAB）
+2. 本番 AdMob ID の発行と Secrets 登録（現在はテスト ID でビルドしている）
+3. `docs/privacy-policy.html` のホスティングと URL 反映（現在の URL は仮）
+4. 実機/エミュレータでの instrumented test と UI 確認（CI には載せていない）
+5. `store/screenshots/` を実機キャプチャへ差し替え
+6. Play Console の全作業

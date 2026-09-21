@@ -10,7 +10,7 @@
 | package | `com.ajuworks.worklog` |
 | versionName / versionCode | `1.0.0` / `1` |
 | minSdk / targetSdk / compileSdk | 26 / 36 / 36 |
-| 言語 | Kotlin + Jetpack Compose (Material 3) |
+| 言語 | Kotlin 2.3.21 + Jetpack Compose (Material 3) |
 | データ | 端末内のみ (Room / DataStore) |
 | ログイン | 不要 |
 | 固定費 | 0円 |
@@ -128,6 +128,15 @@ DB スキーマの変更を伴い、得られる利益に対してリスクが�
 ./gradlew :app:bundleRelease     # Google Play 用 AAB
 ```
 
+ビルドに必要なもの:
+
+| | |
+|---|---|
+| JDK | **21**（Robolectric が Android SDK 36 のサンドボックスに Java 21 を要求するため。アプリ自体の bytecode は 17） |
+| Gradle | 8.14.3（wrapper 同梱） |
+| AGP | 8.13.0 |
+| Android SDK | Platform 36 / Build Tools 36.0.0 / platform-tools |
+
 `settings.gradle.kts` は **Android SDK が見つかるときだけ `:app` を include します**。
 `ANDROID_HOME` / `ANDROID_SDK_ROOT` / `local.properties` の `sdk.dir` のいずれかを
 設定してください。SDK のない環境 (CI サンドボックス等) では `:app` が自動的に外れ、
@@ -224,7 +233,7 @@ debug ビルドから本番広告をリクエストするのはポリシー違�
 | 種別 | 場所 | 実行 |
 |---|---|---|
 | 計算ロジック (54件) | `core/src/test` | `./gradlew :core:test` |
-| 永続化 (Robolectric) | `app/src/test` | `./gradlew :app:testDebugUnitTest` |
+| 永続化 (Robolectric, 11件) | `app/src/test` | `./gradlew :app:testDebugUnitTest` |
 | 実機フロー | `app/src/androidTest` | `./gradlew :app:connectedDebugAndroidTest` |
 
 `core` のテストは仕様書 §31 の全ケース (通常勤務・複数休憩・日跨ぎ・月跨ぎ・年跨ぎ・
@@ -233,6 +242,36 @@ debug ビルドから本番広告をリクエストするのはポリシー違�
 同じ DB の上に repository を作り直すことで検証します。
 
 ---
+
+## CI（GitHub Actions）
+
+`.github/workflows/worklog-android.yml` が、
+
+core test → assembleDebug → app unit test → lint → assembleRelease (R8) → bundleRelease
+
+をすべて実行します。成果物は artifact として保存されます。
+
+| artifact | 内容 |
+|---|---|
+| `worklog-release` | `app-release.aab` / release APK / R8 の `mapping.txt` |
+| `worklog-reports` | lint レポート、テストレポート |
+
+署名鍵は GitHub Secrets から復元します（値はログに出力しません）。
+
+| Secret | 内容 |
+|---|---|
+| `WORKLOG_KEYSTORE_BASE64` | upload keystore を base64 にしたもの |
+| `WORKLOG_KEYSTORE_PASSWORD` | keystore のパスワード |
+| `WORKLOG_KEY_ALIAS` | 鍵の alias |
+| `WORKLOG_KEY_PASSWORD` | 鍵のパスワード |
+| `WORKLOG_ADMOB_APP_ID` 他 | 本番 AdMob ID（任意） |
+
+**Secrets が未設定でもビルドは止まりません。** その場合 release は debug 署名に
+フォールバックし、ジョブサマリーに `Signed with upload key: false` と表示されます。
+その AAB は **Play へアップロードできません**。
+
+instrumented test は CI に載せていません（hosted runner の emulator は遅く不安定なため）。
+ローカルの Android Studio で `./gradlew :app:connectedDebugAndroidTest` を実行してください。
 
 ## Data Safety（Play Console 転記用）
 

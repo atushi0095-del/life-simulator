@@ -159,22 +159,6 @@ jobs:
           WORKLOG_ADMOB_INTERSTITIAL_UNIT_ID: ${{ secrets.WORKLOG_ADMOB_INTERSTITIAL_UNIT_ID }}
         run: ./gradlew :app:bundleRelease --no-daemon --stacktrace
 
-      - name: Report signing identity
-        if: always()
-        working-directory: ${{ env.PROJECT_DIR }}
-        run: |
-          set -euo pipefail
-          AAB=app/build/outputs/bundle/release/app-release.aab
-          [ -f "$AAB" ] || { echo "No AAB produced."; exit 0; }
-          ls -lh "$AAB"
-          # Print the certificate of whatever signed the bundle. This is what
-          # distinguishes a real upload-key signature from the debug fallback.
-          # No secret is printed - only the public certificate.
-          # Public certificate only - no key material is printed.
-          keytool -printcert -jarfile "$AAB" | sed -n '1,14p' \
-            || echo "Could not read the certificate from the bundle."
-          echo "Signed with upload key: ${{ steps.signing.outputs.signed }}"
-
       - name: Clean up signing material
         if: always()
         working-directory: ${{ env.PROJECT_DIR }}
@@ -289,3 +273,36 @@ jobs:
               print("No lint errors found (the failure may be a warning promoted by "
                     "warningsAsErrors; see the uploaded report).")
           PY
+
+      # Last step: the numbers that matter end up at the tail of the log and
+      # in the job summary, rather than buried mid-run.
+      - name: Build summary
+        if: always()
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          set -uo pipefail
+          AAB=app/build/outputs/bundle/release/app-release.aab
+          APK=$(ls app/build/outputs/apk/release/*.apk 2>/dev/null | head -1 || true)
+
+          {
+            echo "### WorkLog build"
+            echo
+            if [ -f "$AAB" ]; then
+              echo "| | |"
+              echo "|---|---|"
+              echo "| AAB | \`$AAB\` |"
+              echo "| AAB size | $(du -h "$AAB" | cut -f1) ($(stat -c%s "$AAB") bytes) |"
+              [ -n "$APK" ] && echo "| APK size | $(du -h "$APK" | cut -f1) |"
+              echo "| Signed with upload key | ${{ steps.signing.outputs.signed }} |"
+              echo "| Production AdMob IDs | ${ADMOB_CONFIGURED:-false} |"
+            else
+              echo "No AAB was produced."
+            fi
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+          [ -f "$AAB" ] || exit 0
+          echo
+          echo "Signing certificate (public, no key material):"
+          keytool -printcert -jarfile "$AAB" \
+            | grep -E "Owner:|Issuer:|Valid|SHA256:" \
+            || echo "  Could not read a certificate - the bundle may be unsigned."

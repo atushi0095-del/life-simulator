@@ -32,7 +32,11 @@ class WorkRepositoryTest {
     private var clockInstant: Instant = Instant.parse("2026-09-20T00:03:00Z") // 09:03 JST
 
     private val clock = object : Clock() {
-        override fun getZone(): ZoneId = zone
+        // `this@WorkRepositoryTest.zone` is required, not stylistic: a bare
+        // `zone` here binds to Clock's own synthetic `zone` property (from
+        // getZone()), not the outer field, and the override recurses into
+        // itself until the stack runs out.
+        override fun getZone(): ZoneId = this@WorkRepositoryTest.zone
         override fun withZone(zone: ZoneId): Clock = this
         override fun instant(): Instant = clockInstant
     }

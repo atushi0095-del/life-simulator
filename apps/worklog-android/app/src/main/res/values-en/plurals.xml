@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="value_days">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
+    <plurals name="value_hours">
+        <item quantity="one">%1$d hour</item>
+        <item quantity="other">%1$d hours</item>
+    </plurals>
+    <plurals name="issue_too_long">
+        <item quantity="one">This shift is %1$d hour long. Please check the times.</item>
+        <item quantity="other">This shift is %1$d hours long. Please check the times.</item>
+    </plurals>
+</resources>

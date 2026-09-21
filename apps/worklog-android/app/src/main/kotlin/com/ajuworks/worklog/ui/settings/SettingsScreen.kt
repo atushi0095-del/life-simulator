@@ -32,6 +32,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -95,7 +96,11 @@ fun SettingsScreen(
             )
             ClickableRow(
                 title = stringResource(R.string.settings_reminder_hours),
-                value = stringResource(R.string.value_hours, settings.reminderAfterHours),
+                value = pluralStringResource(
+                    R.plurals.value_hours,
+                    settings.reminderAfterHours,
+                    settings.reminderAfterHours,
+                ),
                 enabled = settings.reminderEnabled,
                 onClick = { showReminderHoursDialog = true },
             )
@@ -169,7 +174,7 @@ fun SettingsScreen(
             title = stringResource(R.string.settings_reminder_hours),
             options = WorkLogSettings.REMINDER_HOUR_CHOICES,
             selected = settings.reminderAfterHours,
-            label = { stringResource(R.string.value_hours, it) },
+            label = { pluralStringResource(R.plurals.value_hours, it, it) },
             onSelect = {
                 viewModel.setReminderHours(it)
                 showReminderHoursDialog = false

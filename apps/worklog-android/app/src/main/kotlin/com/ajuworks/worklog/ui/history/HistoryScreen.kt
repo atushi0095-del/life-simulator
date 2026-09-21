@@ -33,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -191,7 +192,11 @@ private fun MonthSummary(state: HistoryUiState) {
         ) {
             SummaryCell(
                 stringResource(R.string.label_days_worked),
-                stringResource(R.string.value_days, state.summary.dayCount),
+                pluralStringResource(
+                    R.plurals.value_days,
+                    state.summary.dayCount,
+                    state.summary.dayCount,
+                ),
             )
             SummaryCell(
                 stringResource(R.string.label_total_worked),

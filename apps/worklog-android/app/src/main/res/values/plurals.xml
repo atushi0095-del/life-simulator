@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Japanese has one grammatical number, so every count uses "other". -->
+<resources>
+    <plurals name="value_days">
+        <item quantity="other">%1$d日</item>
+    </plurals>
+    <plurals name="value_hours">
+        <item quantity="other">%1$d時間</item>
+    </plurals>
+    <plurals name="issue_too_long">
+        <item quantity="other">勤務時間が%1$d時間です。入力を確認してください。</item>
+    </plurals>
+</resources>

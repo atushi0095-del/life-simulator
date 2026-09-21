@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">WorkLog</string>
-    <string name="app_tagline">How long did you work today?</string>
 
     <string name="nav_history">History</string>
     <string name="nav_settings">Settings</string>
@@ -41,8 +40,6 @@
     <string name="label_total_worked">Total worked</string>
     <string name="label_total_break">Total break</string>
 
-    <string name="value_days">%1$d days</string>
-    <string name="value_hours">%1$d hours</string>
 
     <string name="home_started_at">Started %1$s</string>
     <string name="home_on_break_since">On a break since %1$s</string>
@@ -59,9 +56,9 @@
 
     <string name="issue_overnight">The clock-out is before the clock-in, so it is saved as the next day.</string>
     <string name="issue_overlapping_breaks">Breaks overlap. The overlap is only subtracted once.</string>
-    <string name="issue_break_outside">Break %1$d falls outside the shift.</string>
+    <!-- %1$d is an index ("break #2"), not a count, so this is not a plural. -->
+    <string name="issue_break_outside" tools:ignore="PluralsCandidate">Break %1$d falls outside the shift.</string>
     <string name="issue_breaks_exceed">Breaks add up to the whole shift or more.</string>
-    <string name="issue_too_long">This shift is %1$d hours long. Please check the times.</string>
     <string name="issue_future">The clock-out time is in the future.</string>
 
     <string name="settings_section_reminder">Notifications</string>

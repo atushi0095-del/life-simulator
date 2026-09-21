@@ -134,8 +134,16 @@ android {
     lint {
         warningsAsErrors = true
         abortOnError = true
-        // Play's own tooling reports these; they are not code defects.
-        disable += setOf("GradleDependency", "NewerVersionAvailable")
+        disable += setOf(
+            // Play's own tooling reports these; they are not code defects.
+            "GradleDependency",
+            "NewerVersionAvailable",
+            // Fires because lint knows of an API level above our targetSdk.
+            // We target 36, which is what Play currently requires for new
+            // apps; raising it further is a decision for a release, not a
+            // lint pass.
+            "OldTargetApi",
+        )
         htmlReport = true
         xmlReport = true
     }
@@ -176,6 +184,17 @@ ksp {
 }
 
 dependencies {
+    constraints {
+        // Something in the transitive graph drags in a fragment older than
+        // 1.3.0, which makes lint fail fatally on MainActivity's
+        // registerForActivityResult (InvalidFragmentVersionForActivityResult).
+        // A constraint raises the floor without pinning a ceiling, so a newer
+        // fragment required by anything else still wins.
+        implementation("androidx.fragment:fragment:1.3.0") {
+            because("registerForActivityResult requires fragment >= 1.3.0")
+        }
+    }
+
     implementation(project(":core"))
 
     implementation(libs.androidx.core.ktx)

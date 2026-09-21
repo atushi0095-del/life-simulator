@@ -3,9 +3,8 @@
   Japanese is the default locale; values-en/ carries the English copy.
   Nothing user-visible is hard-coded in Kotlin.
 -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">WorkLog</string>
-    <string name="app_tagline">今日何時間働いた？</string>
 
     <string name="nav_history">履歴</string>
     <string name="nav_settings">設定</string>
@@ -45,8 +44,6 @@
     <string name="label_total_worked">総勤務時間</string>
     <string name="label_total_break">総休憩</string>
 
-    <string name="value_days">%1$d日</string>
-    <string name="value_hours">%1$d時間</string>
 
     <string name="home_started_at">開始 %1$s</string>
     <string name="home_on_break_since">%1$sから休憩中</string>
@@ -63,9 +60,9 @@
 
     <string name="issue_overnight">退勤が出勤より前のため、翌日の退勤として保存します。</string>
     <string name="issue_overlapping_breaks">休憩が重なっています。重複分は二重に引かれません。</string>
-    <string name="issue_break_outside">%1$d番目の休憩が勤務時間の外にあります。</string>
+    <!-- %1$d is an index ("break #2"), not a count, so this is not a plural. -->
+    <string name="issue_break_outside" tools:ignore="PluralsCandidate">%1$d番目の休憩が勤務時間の外にあります。</string>
     <string name="issue_breaks_exceed">休憩が勤務時間以上になっています。</string>
-    <string name="issue_too_long">勤務時間が%1$d時間です。入力を確認してください。</string>
     <string name="issue_future">退勤時刻が未来になっています。</string>
 
     <string name="settings_section_reminder">通知</string>

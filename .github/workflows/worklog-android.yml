@@ -230,6 +230,7 @@ jobs:
           probe androidx.navigation:navigation-compose
           probe androidx.datastore:datastore-preferences
           probe androidx.core:core-ktx
+          probe androidx.fragment:fragment
           probe com.google.android.gms:play-services-ads
           probe com.google.android.ump:user-messaging-platform
 

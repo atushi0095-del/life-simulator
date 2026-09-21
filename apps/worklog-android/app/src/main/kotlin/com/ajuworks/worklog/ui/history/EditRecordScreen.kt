@@ -43,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -345,7 +346,12 @@ private fun IssueList(issues: List<Issue>) {
                 is Issue.BreakOutsideSession ->
                     stringResource(R.string.issue_break_outside, issue.index + 1)
                 Issue.BreaksExceedWork -> stringResource(R.string.issue_breaks_exceed)
-                is Issue.ImplausiblyLong -> stringResource(R.string.issue_too_long, issue.hours)
+                is Issue.ImplausiblyLong ->
+                    pluralStringResource(
+                        R.plurals.issue_too_long,
+                        issue.hours.toInt(),
+                        issue.hours,
+                    )
                 Issue.EndsInFuture -> stringResource(R.string.issue_future)
             }
             Card(

@@ -1,0 +1,201 @@
+name: WorkLog Android
+
+# The Android SDK cannot be downloaded from the agent sandbox that authors this
+# repo (dl.google.com is blocked by network policy), so this workflow is where
+# the Android module is actually compiled, tested, linted and bundled.
+on:
+  workflow_dispatch:
+  push:
+    branches: ['**']
+    paths:
+      - 'apps/worklog-android/**'
+      - '.github/workflows/worklog-android.yml'
+  pull_request:
+    paths:
+      - 'apps/worklog-android/**'
+      - '.github/workflows/worklog-android.yml'
+
+concurrency:
+  group: worklog-android-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # apps/worklog-android is the Gradle root; every ./gradlew call runs there.
+  PROJECT_DIR: apps/worklog-android
+
+jobs:
+  build:
+    name: Build, test and bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: ''
+
+      # Only what the build declares it needs: compileSdk 36, the build-tools
+      # AGP 8.13 pairs with, and platform-tools. No extra system images.
+      - name: Install SDK packages
+        run: |
+          set -euo pipefail
+          sdkmanager --install \
+            "platform-tools" \
+            "platforms;android-36" \
+            "build-tools;36.0.0"
+          sdkmanager --list_installed
+
+      - name: Confirm the SDK is visible to Gradle
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          set -euo pipefail
+          echo "ANDROID_HOME=${ANDROID_HOME:-unset}"
+          echo "ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-unset}"
+          # settings.gradle.kts only includes :app when an SDK is present, so a
+          # missing SDK would silently skip the entire Android module rather
+          # than fail. Assert it is there before anything else runs.
+          ./gradlew projects --no-daemon | tee /tmp/projects.txt
+          grep -q "Project ':app'" /tmp/projects.txt \
+            || { echo "::error::':app' was not included - the Android SDK was not detected."; exit 1; }
+
+      - name: Configure AdMob IDs
+        env:
+          ADMOB_APP_ID: ${{ secrets.WORKLOG_ADMOB_APP_ID }}
+          ADMOB_BANNER_UNIT_ID: ${{ secrets.WORKLOG_ADMOB_BANNER_UNIT_ID }}
+          ADMOB_INTERSTITIAL_UNIT_ID: ${{ secrets.WORKLOG_ADMOB_INTERSTITIAL_UNIT_ID }}
+        run: |
+          set -euo pipefail
+          # No values are printed. The build falls back to Google's public test
+          # IDs when these are absent, which is a valid build - just not one
+          # that can serve live ads.
+          if [ -n "${ADMOB_APP_ID:-}" ]; then
+            echo "ADMOB_CONFIGURED=true" >> "$GITHUB_ENV"
+            echo "Production AdMob IDs supplied."
+          else
+            echo "ADMOB_CONFIGURED=false" >> "$GITHUB_ENV"
+            echo "::warning::No production AdMob IDs configured - building with Google test ad IDs."
+          fi
+
+      - name: Core unit tests
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: ./gradlew :core:test --no-daemon --stacktrace
+
+      - name: Assemble debug
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
+
+      - name: App unit tests
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: ./gradlew :app:testDebugUnitTest --no-daemon --stacktrace
+
+      - name: Lint
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: ./gradlew :app:lint --no-daemon --stacktrace
+
+      # The keystore never exists in the repo. If the secret is absent the
+      # build falls back to the debug signature (see app/build.gradle.kts), so
+      # a bundle is still produced - it just cannot be uploaded to Play.
+      - name: Restore upload keystore
+        id: signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.WORKLOG_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.WORKLOG_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.WORKLOG_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.WORKLOG_KEY_PASSWORD }}
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          set -euo pipefail
+          if [ -z "${KEYSTORE_BASE64:-}" ]; then
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::No upload keystore in secrets - the release bundle will carry the debug signature and is NOT uploadable to Play."
+            exit 0
+          fi
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > upload-keystore.jks
+          # Written, never echoed. keystore.properties is git-ignored.
+          umask 077
+          {
+            echo "store.file=upload-keystore.jks"
+            echo "store.password=${KEYSTORE_PASSWORD}"
+            echo "key.alias=${KEY_ALIAS}"
+            echo "key.password=${KEY_PASSWORD}"
+          } > keystore.properties
+          echo "signed=true" >> "$GITHUB_OUTPUT"
+          echo "Upload keystore restored."
+
+      - name: Assemble release (R8 / minify enabled)
+        working-directory: ${{ env.PROJECT_DIR }}
+        env:
+          WORKLOG_ADMOB_APP_ID: ${{ secrets.WORKLOG_ADMOB_APP_ID }}
+          WORKLOG_ADMOB_BANNER_UNIT_ID: ${{ secrets.WORKLOG_ADMOB_BANNER_UNIT_ID }}
+          WORKLOG_ADMOB_INTERSTITIAL_UNIT_ID: ${{ secrets.WORKLOG_ADMOB_INTERSTITIAL_UNIT_ID }}
+        run: ./gradlew :app:assembleRelease --no-daemon --stacktrace
+
+      - name: Bundle release (AAB)
+        working-directory: ${{ env.PROJECT_DIR }}
+        env:
+          WORKLOG_ADMOB_APP_ID: ${{ secrets.WORKLOG_ADMOB_APP_ID }}
+          WORKLOG_ADMOB_BANNER_UNIT_ID: ${{ secrets.WORKLOG_ADMOB_BANNER_UNIT_ID }}
+          WORKLOG_ADMOB_INTERSTITIAL_UNIT_ID: ${{ secrets.WORKLOG_ADMOB_INTERSTITIAL_UNIT_ID }}
+        run: ./gradlew :app:bundleRelease --no-daemon --stacktrace
+
+      - name: Report signing identity
+        if: always()
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          set -euo pipefail
+          AAB=app/build/outputs/bundle/release/app-release.aab
+          [ -f "$AAB" ] || { echo "No AAB produced."; exit 0; }
+          ls -lh "$AAB"
+          # Print the certificate of whatever signed the bundle. This is what
+          # distinguishes a real upload-key signature from the debug fallback.
+          # No secret is printed - only the public certificate.
+          # Public certificate only - no key material is printed.
+          keytool -printcert -jarfile "$AAB" | sed -n '1,14p' \
+            || echo "Could not read the certificate from the bundle."
+          echo "Signed with upload key: ${{ steps.signing.outputs.signed }}"
+
+      - name: Clean up signing material
+        if: always()
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: rm -f upload-keystore.jks keystore.properties
+
+      - name: Upload release artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: worklog-release
+          if-no-files-found: warn
+          retention-days: 30
+          path: |
+            apps/worklog-android/app/build/outputs/bundle/release/*.aab
+            apps/worklog-android/app/build/outputs/apk/release/*.apk
+            apps/worklog-android/app/build/outputs/mapping/release/mapping.txt
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: worklog-reports
+          if-no-files-found: warn
+          retention-days: 30
+          path: |
+            apps/worklog-android/app/build/reports/**
+            apps/worklog-android/core/build/reports/**
+            apps/worklog-android/app/build/test-results/**
+            apps/worklog-android/core/build/test-results/**

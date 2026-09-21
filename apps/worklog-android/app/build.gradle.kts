@@ -1,4 +1,5 @@
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
@@ -116,10 +117,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     packaging {
         resources.excludes += setOf(
             "/META-INF/{AL2.0,LGPL2.1}",
@@ -141,6 +138,13 @@ android {
         disable += setOf("GradleDependency", "NewerVersionAvailable")
         htmlReport = true
         xmlReport = true
+    }
+}
+
+kotlin {
+    // Kotlin 2.3 removed the `kotlinOptions` DSL inside the android block.
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 

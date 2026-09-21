@@ -61,19 +61,6 @@ jobs:
             "build-tools;36.0.0"
           sdkmanager --list_installed
 
-      - name: Confirm the SDK is visible to Gradle
-        working-directory: ${{ env.PROJECT_DIR }}
-        run: |
-          set -euo pipefail
-          echo "ANDROID_HOME=${ANDROID_HOME:-unset}"
-          echo "ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-unset}"
-          # settings.gradle.kts only includes :app when an SDK is present, so a
-          # missing SDK would silently skip the entire Android module rather
-          # than fail. Assert it is there before anything else runs.
-          ./gradlew projects --no-daemon | tee /tmp/projects.txt
-          grep -q "Project ':app'" /tmp/projects.txt \
-            || { echo "::error::':app' was not included - the Android SDK was not detected."; exit 1; }
-
       # Google Maven is unreachable from the sandbox that edits this repo, so
       # dependency versions cannot be checked there. Print the current ones
       # here. Temporary - remove once the versions are settled.
@@ -100,6 +87,19 @@ jobs:
           probe androidx.core:core-ktx
           probe com.google.android.gms:play-services-ads
           probe com.google.android.ump:user-messaging-platform
+
+      - name: Confirm the SDK is visible to Gradle
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          set -euo pipefail
+          echo "ANDROID_HOME=${ANDROID_HOME:-unset}"
+          echo "ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-unset}"
+          # settings.gradle.kts only includes :app when an SDK is present, so a
+          # missing SDK would silently skip the entire Android module rather
+          # than fail. Assert it is there before anything else runs.
+          ./gradlew projects --no-daemon | tee /tmp/projects.txt
+          grep -q "Project ':app'" /tmp/projects.txt \
+            || { echo "::error::':app' was not included - the Android SDK was not detected."; exit 1; }
 
       - name: Configure AdMob IDs
         env:

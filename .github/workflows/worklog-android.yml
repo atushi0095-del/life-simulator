@@ -36,11 +36,16 @@ jobs:
       - name: Check out
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      # Java 21, not 17: Robolectric refuses to build a sandbox for Android
+      # SDK 36 on anything older ("Android SDK 36 requires Java 21"). AGP 8.13
+      # runs happily on 21, and the app's own bytecode target stays at 17 -
+      # that is set by compileOptions/jvmTarget, independent of the JDK the
+      # build runs on.
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4

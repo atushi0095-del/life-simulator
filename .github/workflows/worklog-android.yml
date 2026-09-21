@@ -180,37 +180,6 @@ jobs:
         working-directory: ${{ env.PROJECT_DIR }}
         run: rm -f upload-keystore.jks keystore.properties
 
-      # Artifact storage is not reachable from the environment that maintains
-      # this workflow, so a failing test has to be legible in the log itself.
-      - name: Summarize test failures
-        if: failure()
-        working-directory: ${{ env.PROJECT_DIR }}
-        run: |
-          set -uo pipefail
-          python3 - <<'PY'
-          import glob, xml.etree.ElementTree as ET
-
-          found = False
-          for path in sorted(glob.glob("**/test-results/**/*.xml", recursive=True)):
-              try:
-                  root = ET.parse(path).getroot()
-              except ET.ParseError:
-                  continue
-              for case in root.iter("testcase"):
-                  for bad in list(case.findall("failure")) + list(case.findall("error")):
-                      found = True
-                      print("=" * 78)
-                      print(f'{case.get("classname")}.{case.get("name")}')
-                      print("-" * 78)
-                      print((bad.get("message") or "").strip()[:800])
-                      body = (bad.text or "").strip().splitlines()
-                      for line in body[:25]:
-                          print("   ", line[:200])
-                      print()
-          if not found:
-              print("No failing test cases found in the JUnit XML.")
-          PY
-
       - name: Upload release artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -263,3 +232,34 @@ jobs:
           probe androidx.core:core-ktx
           probe com.google.android.gms:play-services-ads
           probe com.google.android.ump:user-messaging-platform
+
+      # Artifact storage is not reachable from the environment that maintains
+      # this workflow, so a failing test has to be legible in the log itself.
+      - name: Summarize test failures
+        if: failure()
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          set -uo pipefail
+          python3 - <<'PY'
+          import glob, xml.etree.ElementTree as ET
+
+          found = False
+          for path in sorted(glob.glob("**/test-results/**/*.xml", recursive=True)):
+              try:
+                  root = ET.parse(path).getroot()
+              except ET.ParseError:
+                  continue
+              for case in root.iter("testcase"):
+                  for bad in list(case.findall("failure")) + list(case.findall("error")):
+                      found = True
+                      print("=" * 78)
+                      print(f'{case.get("classname")}.{case.get("name")}')
+                      print("-" * 78)
+                      print((bad.get("message") or "").strip()[:800])
+                      body = (bad.text or "").strip().splitlines()
+                      for line in body[:25]:
+                          print("   ", line[:200])
+                      print()
+          if not found:
+              print("No failing test cases found in the JUnit XML.")
+          PY

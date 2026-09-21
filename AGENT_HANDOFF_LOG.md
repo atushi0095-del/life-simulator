@@ -307,3 +307,86 @@ play-services-ads 25.5.0      ump             4.0.0
 4. 実機/エミュレータでの instrumented test と UI 確認（CI には載せていない）
 5. `store/screenshots/` を実機キャプチャへ差し替え
 6. Play Console の全作業
+
+---
+
+## 2026-09-21 (3) — upload key: **作成していない。ブロッカーあり**
+
+担当: Claude Code (session `018TMiDr32NLsyJ9ej6wry2a`)
+ブランチ: `claude/worklog-android-app-xyu3yf`
+
+### 結論
+
+本番 upload key の作成と GitHub Secrets 登録を指示されたが、**実施していない。**
+理由は 2 つで、どちらも回避不能。
+
+**1. Claude は GitHub Secrets に書き込めない（技術的に不可能）**
+
+agent proxy が Actions の secrets 系エンドポイントを遮断している:
+
+```
+/actions/secrets            -> 403
+/actions/secrets/public-key -> 403
+/actions/variables          -> 403
+/environments               -> 403
+（同じトークンでリポジトリ本体の読み取りは 200）
+```
+
+MCP の github ツールにも secrets 管理用のものは無い。
+これは「エージェントにリポジトリの秘密情報を書かせない」という意図的なガードで、
+セッション内で回避する手段は無い。
+
+**2. この環境で鍵を作るのは割に合わない**
+
+`keytool` は使えるので鍵の生成自体は可能。しかし:
+
+- この環境は**使い捨てのコンテナ**で、セッション終了時に破棄される。
+  ここで作った鍵はチャット経由で運び出さない限り消える
+- 運び出すということは、**今後すべての Ajuworks アプリを署名する鍵**が
+  チャットのログに残るということ。署名鍵は「本人だけが持っている」ことに
+  価値があるので、これは鍵の価値そのものを損なう
+- そして上記 1 のため、**鍵を作っても署名済み AAB には到達しない**。
+  リスクだけ増えて前進しない
+
+したがって「作れるから作る」ではなく、**作らない**判断をした。
+ユーザーのローカル PC で 1 コマンドで作れる。
+
+### 代わりにやったこと
+
+**`apps/worklog-android/docs/signing-setup.md` を追加**（手順書）。
+Windows / macOS / Linux 両対応で、鍵の作成・権限設定・base64 化・Secrets 登録まで。
+
+Windows の落とし穴を明記: **`certutil -encode` は使わない**
+（`-----BEGIN CERTIFICATE-----` ヘッダが付いて base64 が壊れる）。
+`[Convert]::ToBase64String([IO.File]::ReadAllBytes(...))` を使う。
+
+**workflow に署名検証ゲートを追加**（`Verify the bundle signature`）:
+
+- 毎回 `jarsigner -verify -verbose:summary -certs` と証明書 SHA-256 を出力
+- **secrets を設定したのに debug 署名になっていたらジョブを失敗させる。**
+  設定ミスや stale な configuration cache のせいで、署名されていないものが
+  release として素通りするのを防ぐ
+- secrets 未設定のときは warning を出して通す（R8 の smoke test は続けたいため）
+
+**artifact 名が署名状態を表すようにした**:
+
+| 状態 | artifact 名 |
+|---|---|
+| upload key で署名済み | `worklog-signed-release` |
+| 未署名（debug 署名） | `worklog-release-UNSIGNED` |
+
+ダウンロード後に取り違えないようにするため。
+
+### 次にやること（人間）
+
+1. `apps/worklog-android/docs/signing-setup.md` の手順でローカルに鍵を作る
+2. 4 つの Secrets を登録する
+   （`WORKLOG_KEYSTORE_BASE64` / `WORKLOG_KEYSTORE_PASSWORD` /
+   `WORKLOG_KEY_ALIAS` / `WORKLOG_KEY_PASSWORD`）
+3. workflow を再実行する
+
+3 が終われば artifact は `worklog-signed-release` になり、
+検証ステップが署名を確認する。そこまで来たら Claude に再開を依頼すれば、
+run を確認して最終報告できる。
+
+**鍵・パスワード・base64 は Git にもこのログにも入れていない。**

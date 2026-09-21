@@ -159,6 +159,46 @@ jobs:
           WORKLOG_ADMOB_INTERSTITIAL_UNIT_ID: ${{ secrets.WORKLOG_ADMOB_INTERSTITIAL_UNIT_ID }}
         run: ./gradlew :app:bundleRelease --no-daemon --stacktrace
 
+
+      # The whole point of supplying a keystore is that the bundle stops being
+      # debug-signed. Assert it, rather than trusting that it happened: a stale
+      # configuration-cache entry or a mistyped secret would otherwise produce
+      # a debug-signed bundle that looks like a successful release build.
+      - name: Verify the bundle signature
+        working-directory: ${{ env.PROJECT_DIR }}
+        env:
+          EXPECT_SIGNED: ${{ steps.signing.outputs.signed }}
+        run: |
+          set -uo pipefail
+          AAB=app/build/outputs/bundle/release/app-release.aab
+          if [ ! -f "$AAB" ]; then
+            echo "::error::No AAB was produced."
+            exit 1
+          fi
+
+          echo "--- jarsigner -verify ---"
+          jarsigner -verify -verbose:summary -certs "$AAB" | tail -25
+          echo
+
+          echo "--- certificate (public, no key material) ---"
+          CERT=$(keytool -printcert -jarfile "$AAB")
+          echo "$CERT" | grep -E "Owner:|Issuer:|Valid |SHA256:"
+          echo
+
+          if echo "$CERT" | grep -q "CN=Android Debug"; then
+            if [ "${EXPECT_SIGNED:-false}" = "true" ]; then
+              echo "::error::An upload keystore was supplied, but the bundle carries the Android debug certificate. Not publishable - failing."
+              exit 1
+            fi
+            echo "::warning::This bundle is DEBUG-SIGNED. It cannot be uploaded to Google Play. Configure the signing secrets to produce a release build."
+          else
+            if [ "${EXPECT_SIGNED:-false}" != "true" ]; then
+              echo "::error::The bundle is signed by a certificate this job did not configure."
+              exit 1
+            fi
+            echo "Signed with the Ajuworks upload key."
+          fi
+
       - name: Clean up signing material
         if: always()
         working-directory: ${{ env.PROJECT_DIR }}
@@ -168,7 +208,9 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: worklog-release
+          # The name states whether the bundle is publishable, so an unsigned
+          # build cannot be mistaken for a release one after download.
+          name: ${{ steps.signing.outputs.signed == 'true' && 'worklog-signed-release' || 'worklog-release-UNSIGNED' }}
           if-no-files-found: warn
           retention-days: 30
           path: |

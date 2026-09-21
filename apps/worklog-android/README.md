@@ -144,8 +144,13 @@ DB スキーマの変更を伴い、得られる利益に対してリスクが�
 
 ### 署名
 
+release ビルドは **Ajuworks 共通 upload key** で署名します。
 鍵とパスワードはリポジトリに入れません。`keystore.properties`
 (git-ignore 済み) か環境変数から読みます。
+
+鍵の作成と GitHub Secrets への登録手順は
+[`docs/signing-setup.md`](docs/signing-setup.md) を参照してください。
+**この作業はローカル PC で行います。**
 
 ```properties
 # apps/worklog-android/keystore.properties
@@ -253,7 +258,7 @@ core test → assembleDebug → app unit test → lint → assembleRelease (R8) 
 
 | artifact | 内容 |
 |---|---|
-| `worklog-release` | `app-release.aab` / release APK / R8 の `mapping.txt` |
+| `worklog-signed-release` / `worklog-release-UNSIGNED` | `app-release.aab` / release APK / R8 の `mapping.txt` |
 | `worklog-reports` | lint レポート、テストレポート |
 
 署名鍵は GitHub Secrets から復元します（値はログに出力しません）。
@@ -267,8 +272,18 @@ core test → assembleDebug → app unit test → lint → assembleRelease (R8) 
 | `WORKLOG_ADMOB_APP_ID` 他 | 本番 AdMob ID（任意） |
 
 **Secrets が未設定でもビルドは止まりません。** その場合 release は debug 署名に
-フォールバックし、ジョブサマリーに `Signed with upload key: false` と表示されます。
+フォールバックし、artifact 名が `worklog-release-UNSIGNED` になります。
 その AAB は **Play へアップロードできません**。
+
+`Verify the bundle signature` ステップが毎回 `jarsigner -verify` と証明書の
+SHA-256 を出力し、**secrets を設定したのに debug 署名になっていた場合はジョブを
+失敗させます**（設定ミスや stale な configuration cache で、署名されていないものが
+release として素通りするのを防ぐため）。
+
+| 状態 | artifact 名 |
+|---|---|
+| upload key で署名済み | `worklog-signed-release` |
+| 未署名（debug 署名） | `worklog-release-UNSIGNED` |
 
 instrumented test は CI に載せていません（hosted runner の emulator は遅く不安定なため）。
 ローカルの Android Studio で `./gradlew :app:connectedDebugAndroidTest` を実行してください。

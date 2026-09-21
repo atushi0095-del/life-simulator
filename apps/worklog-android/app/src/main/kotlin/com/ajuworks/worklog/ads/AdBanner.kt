@@ -38,6 +38,14 @@ fun AdBanner(modifier: Modifier = Modifier) {
             modifier = Modifier,
             factory = { context ->
                 AdView(context).apply {
+                    // Mobile Ads 25.x deprecates this in favour of the large
+                    // anchored adaptive API but has not removed it, so it still
+                    // compiles and serves correctly. Left as-is deliberately:
+                    // the replacement has not been verified against a real
+                    // build here (no Android SDK in this environment), and an
+                    // unverified swap on the ad path is worse than a
+                    // deprecation warning. Migrate when building for real.
+                    @Suppress("DEPRECATION")
                     setAdSize(
                         AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, widthDp)
                     )

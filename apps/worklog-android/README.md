@@ -9,7 +9,7 @@
 |---|---|
 | package | `com.ajuworks.worklog` |
 | versionName / versionCode | `1.0.0` / `1` |
-| minSdk / targetSdk / compileSdk | 26 / 35 / 35 |
+| minSdk / targetSdk / compileSdk | 26 / 36 / 36 |
 | 言語 | Kotlin + Jetpack Compose (Material 3) |
 | データ | 端末内のみ (Room / DataStore) |
 | ログイン | 不要 |
@@ -92,7 +92,22 @@ apps/worklog-android/
 手動編集で重なった休憩を作っても、同じ時間が 2 回引かれることはありません。
 退勤時刻を超える休憩は勤務時間内にクランプされ、実働がマイナスになることもありません。
 
-### 5. 退勤 < 出勤 は「翌日退勤」と解釈する
+### 5. 手動追加の「休憩合計のみ」入力について
+
+履歴の「勤務を追加」で、休憩を**合計分数だけ**入力した場合
+（例: 休憩 60分）、その休憩は **勤務時間の中央に1件の区間として合成** されます。
+
+- 休憩の**合計は正確**です。実働時間・集計は必ず正しくなります。
+- ただし詳細画面に表示される休憩の**開始・終了時刻は便宜的な値**であり、
+  実際にその時刻に休憩したことを意味しません。
+
+正確な休憩時刻を残したい場合は、編集画面で休憩を個別に追加してください。
+
+初版ではこの仕様を維持しています。休憩を「合計分数」と「時刻区間」の
+どちらでも保持できるようデータモデルを変更することは可能ですが、
+DB スキーマの変更を伴い、得られる利益に対してリスクが見合わないと判断しました。
+
+### 6. 退勤 < 出勤 は「翌日退勤」と解釈する
 
 「翌日にまたがる」チェックボックスはありません。
 退勤時刻が出勤時刻以下なら翌日として解釈し、そのことを画面上で通知します
@@ -140,9 +155,42 @@ key.password=***
 
 ### AdMob
 
-既定では Google の公開テスト ID が入っています。本番 ID は署名と同じ仕組みで
-差し替えます (`admob.appId` / `admob.bannerUnitId` / `admob.interstitialUnitId`、
-または `WORKLOG_ADMOB_*`)。本番 ID をコミットしないでください。
+既定では Google の公開テスト ID が入っています。本番 ID は以下の順で探します。
+
+1. `apps/worklog-android/keystore.properties`（git-ignore 済み）
+2. Gradle プロパティ（`~/.gradle/gradle.properties` または `-P`）
+3. 環境変数
+
+キー名は `admob.appId` / `admob.bannerUnitId` / `admob.interstitialUnitId`、
+環境変数は `WORKLOG_ADMOB_APP_ID` / `WORKLOG_ADMOB_BANNER_UNIT_ID` /
+`WORKLOG_ADMOB_INTERSTITIAL_UNIT_ID`。
+
+例（`~/.gradle/gradle.properties`）:
+
+```properties
+admob.appId=ca-app-pub-xxxxxxxxxxxxxxxx~xxxxxxxxxx
+admob.bannerUnitId=ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx
+admob.interstitialUnitId=ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx
+```
+
+**本番 ID をコミットしないでください。**
+
+なお **debug ビルドは設定に関わらず必ずテスト ID を使います**
+（`app/build.gradle.kts` の `buildTypes.debug` で上書き）。
+debug ビルドから本番広告をリクエストするのはポリシー違反のため、
+運用ルールではなく構造で防いでいます。
+
+### 広告 SDK のバージョン
+
+| SDK | version | 備考 |
+|---|---|---|
+| Google Mobile Ads SDK | 25.5.0 | 25.0.0 の破壊的変更はメディエーションアダプタ／カスタムイベント向けで、本アプリは未使用。必要 minSdk は 23（本アプリは 26） |
+| User Messaging Platform | 4.0.0 | 必要 minSdk は 23。`setConsentSyncId()` が追加された以外、本アプリが使う API に変更なし |
+
+25.x では `AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize()` が
+非推奨（削除ではない）になり、large anchored adaptive API が推奨されています。
+本アプリは現時点では従来 API のまま `@Suppress("DEPRECATION")` を付けています
+（理由は `ads/AdBanner.kt` のコメント参照）。実ビルドできる環境で差し替えてください。
 
 ---
 
@@ -175,7 +223,7 @@ key.password=***
 
 | 種別 | 場所 | 実行 |
 |---|---|---|
-| 計算ロジック (48件) | `core/src/test` | `./gradlew :core:test` |
+| 計算ロジック (54件) | `core/src/test` | `./gradlew :core:test` |
 | 永続化 (Robolectric) | `app/src/test` | `./gradlew :app:testDebugUnitTest` |
 | 実機フロー | `app/src/androidTest` | `./gradlew :app:connectedDebugAndroidTest` |
 
@@ -185,6 +233,26 @@ key.password=***
 同じ DB の上に repository を作り直すことで検証します。
 
 ---
+
+## Data Safety（Play Console 転記用）
+
+**「データを収集しない」と申告しないこと。** 勤務記録は端末外に出ませんが、
+AdMob SDK が扱うデータがあります。
+
+| 項目 | 申告内容 |
+|---|---|
+| アプリ自身が収集・送信するデータ | なし。勤務記録・メモ・設定はすべて端末内 |
+| 第三者 SDK が扱うデータ | Google Mobile Ads SDK (AdMob) が広告 ID・おおよその位置情報（IP由来）・端末情報などを広告配信のために処理 |
+| データの種類（想定） | 「位置情報 > おおよその位置情報」「アプリのアクティビティ」「デバイス ID またはその他の ID > デバイスまたはその他の ID」 |
+| 目的 | 広告またはマーケティング |
+| 共有の有無 | あり（Google へ）。開発者は個人を特定できる形で受け取らない |
+| 収集は必須か | 広告 ID は必須ではない（ユーザーは端末設定でリセット・オプトアウト可能） |
+| 転送時の暗号化 | あり（HTTPS） |
+| 削除要請 | アンインストールで端末内データは削除。広告 ID は端末設定から |
+
+**必ず最新の Google Mobile Ads SDK 公式ガイダンスと照合してから申告してください。**
+AdMob は Play Console のデータセーフティ用の申告ガイドを公開しており、
+SDK バージョンによって該当項目が変わります。
 
 ## ストア素材
 

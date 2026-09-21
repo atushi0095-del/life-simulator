@@ -111,4 +111,75 @@ class AggregationTest {
         val summary = WorkAggregator.summarize(running, stamp(2026, 10, 5, 12, 30))
         assertThat(summary.netMillis).isEqualTo(hm(3, 30))
     }
+
+    // --- summaryWindow -------------------------------------------------
+    // The home screen fetches one range and derives today/week/month from it.
+    // If the range misses a day, a total silently under-reports, so the window
+    // is pinned down here rather than trusted.
+
+    @Test
+    fun `summary window covers both the week and the month start`() {
+        // 2026-10-01 is a Thursday; the Monday-based week began 2026-09-28,
+        // which is BEFORE the month start - the case a month-anchored window
+        // gets wrong.
+        val window = WorkAggregator.summaryWindow(date(2026, 10, 1), DayOfWeek.MONDAY)
+
+        assertThat(window.start).isEqualTo(date(2026, 9, 28))
+        assertThat(window.endInclusive).isEqualTo(date(2026, 10, 1))
+    }
+
+    @Test
+    fun `summary window starts at the month when the week starts later`() {
+        // 2026-10-15 is a Thursday; that week began 2026-10-12, inside the
+        // month, so the month start is the binding constraint.
+        val window = WorkAggregator.summaryWindow(date(2026, 10, 15), DayOfWeek.MONDAY)
+
+        assertThat(window.start).isEqualTo(date(2026, 10, 1))
+        assertThat(window.endInclusive).isEqualTo(date(2026, 10, 15))
+    }
+
+    @Test
+    fun `summary window honours a sunday week start`() {
+        // 2026-10-01 Thursday, Sunday-based week began 2026-09-27.
+        val window = WorkAggregator.summaryWindow(date(2026, 10, 1), DayOfWeek.SUNDAY)
+
+        assertThat(window.start).isEqualTo(date(2026, 9, 27))
+    }
+
+    @Test
+    fun `summary window reaches back across a year boundary`() {
+        // 2027-01-01 is a Friday; the Monday-based week began 2026-12-28.
+        val window = WorkAggregator.summaryWindow(date(2027, 1, 1), DayOfWeek.MONDAY)
+
+        assertThat(window.start).isEqualTo(date(2026, 12, 28))
+        assertThat(window.endInclusive).isEqualTo(date(2027, 1, 1))
+    }
+
+    @Test
+    fun `summary window is a single day when the month and week both start today`() {
+        // 2026-06-01 is a Monday and the first of the month.
+        val window = WorkAggregator.summaryWindow(date(2026, 6, 1), DayOfWeek.MONDAY)
+
+        assertThat(window.start).isEqualTo(date(2026, 6, 1))
+        assertThat(window.endInclusive).isEqualTo(date(2026, 6, 1))
+    }
+
+    @Test
+    fun `every week day of a month-start week falls inside the window`() {
+        // Walk a whole year and assert the window never misses a day that
+        // either the week total or the month total would need.
+        var day = date(2026, 1, 1)
+        while (day.isBefore(date(2027, 1, 1))) {
+            for (weekStart in listOf(DayOfWeek.MONDAY, DayOfWeek.SUNDAY, DayOfWeek.SATURDAY)) {
+                val window = WorkAggregator.summaryWindow(day, weekStart)
+                val weekFrom = WorkAggregator.startOfWeek(day, weekStart)
+                val monthFrom = day.withDayOfMonth(1)
+
+                assertThat(window.start).isAtMost(weekFrom)
+                assertThat(window.start).isAtMost(monthFrom)
+                assertThat(window.endInclusive).isEqualTo(day)
+            }
+            day = day.plusDays(1)
+        }
+    }
 }

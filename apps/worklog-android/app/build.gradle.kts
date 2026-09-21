@@ -8,10 +8,18 @@ plugins {
 }
 
 /**
- * Signing is read from keystore.properties (git-ignored) or from environment
- * variables, so no key material ever lives in the repo. When neither is
- * present the release build falls back to the debug signature, which keeps
- * `assembleRelease` runnable for R8 smoke testing without a key.
+ * Signing keys and production AdMob IDs are read from outside the repository,
+ * so no key material or live ad unit ever lands in git. Three sources, in
+ * order of precedence:
+ *
+ *   1. keystore.properties next to this build (git-ignored)
+ *   2. a Gradle property, which covers ~/.gradle/gradle.properties and -P
+ *   3. an environment variable, which covers CI
+ *
+ * When none supplies a signing key, the release build falls back to the debug
+ * signature so `assembleRelease` stays runnable for R8 smoke testing. When
+ * none supplies an AdMob ID, Google's public test IDs are used - so a debug
+ * build always serves test ads, never live inventory.
  */
 val keystoreProperties = Properties().apply {
     val file = rootProject.file("keystore.properties")
@@ -19,36 +27,41 @@ val keystoreProperties = Properties().apply {
 }
 
 fun secret(key: String, env: String): String? =
-    keystoreProperties.getProperty(key) ?: System.getenv(env)
+    keystoreProperties.getProperty(key)
+        ?: providers.gradleProperty(key).orNull
+        ?: System.getenv(env)
+
+// Google's public test IDs. Safe to commit; they never serve live inventory.
+val testAdmobAppId = "ca-app-pub-3940256099942544~3347511713"
+val testAdmobBannerUnitId = "ca-app-pub-3940256099942544/6300978111"
+val testAdmobInterstitialUnitId = "ca-app-pub-3940256099942544/1033173712"
 
 android {
     namespace = "com.ajuworks.worklog"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.ajuworks.worklog"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        // Google's public test IDs. Replaced at release time via
-        // keystore.properties / CI env - see README.md -> "AdMob".
+        // Production IDs come from outside the repo; see secret() above.
         manifestPlaceholders["admobAppId"] =
-            secret("admob.appId", "WORKLOG_ADMOB_APP_ID")
-                ?: "ca-app-pub-3940256099942544~3347511713"
+            secret("admob.appId", "WORKLOG_ADMOB_APP_ID") ?: testAdmobAppId
         buildConfigField(
             "String",
             "ADMOB_BANNER_UNIT_ID",
             "\"${secret("admob.bannerUnitId", "WORKLOG_ADMOB_BANNER_UNIT_ID")
-                ?: "ca-app-pub-3940256099942544/6300978111"}\"",
+                ?: testAdmobBannerUnitId}\"",
         )
         buildConfigField(
             "String",
             "ADMOB_INTERSTITIAL_UNIT_ID",
             "\"${secret("admob.interstitialUnitId", "WORKLOG_ADMOB_INTERSTITIAL_UNIT_ID")
-                ?: "ca-app-pub-3940256099942544/1033173712"}\"",
+                ?: testAdmobInterstitialUnitId}\"",
         )
     }
 
@@ -78,6 +91,18 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
+
+            // Debug builds always serve test ads, whatever production IDs are
+            // configured on the machine. Requesting live ads from a debug
+            // build is a policy violation, so it is made structurally
+            // impossible rather than left to discipline.
+            manifestPlaceholders["admobAppId"] = testAdmobAppId
+            buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"$testAdmobBannerUnitId\"")
+            buildConfigField(
+                "String",
+                "ADMOB_INTERSTITIAL_UNIT_ID",
+                "\"$testAdmobInterstitialUnitId\"",
+            )
         }
     }
 

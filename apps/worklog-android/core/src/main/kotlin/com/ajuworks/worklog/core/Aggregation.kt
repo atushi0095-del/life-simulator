@@ -67,4 +67,20 @@ object WorkAggregator {
 
     fun monthRange(month: YearMonth): ClosedRange<LocalDate> =
         month.atDay(1)..month.atEndOfMonth()
+
+    /**
+     * The date window the home screen needs in order to compute today's, this
+     * week's and this month's totals from a single query.
+     *
+     * It is the earlier of the current week's first day and the current
+     * month's first day, through today. Deriving it explicitly - rather than
+     * padding the month by a fixed number of days and hoping the week fits -
+     * keeps the query correct for any [weekStart], and independent of where
+     * the month boundary happens to fall.
+     */
+    fun summaryWindow(today: LocalDate, weekStart: DayOfWeek): ClosedRange<LocalDate> {
+        val weekFrom = startOfWeek(today, weekStart)
+        val monthFrom = today.withDayOfMonth(1)
+        return minOf(weekFrom, monthFrom)..today
+    }
 }

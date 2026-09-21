@@ -11,14 +11,18 @@ import com.ajuworks.worklog.core.WorkAggregator
 import com.ajuworks.worklog.core.WorkRecord
 import com.ajuworks.worklog.core.WorkSummary
 import com.ajuworks.worklog.domain.WorkActions
-import java.time.LocalDate
 import java.time.YearMonth
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -38,6 +42,7 @@ data class HomeUiState(
     val currentBreakMillis: Long get() = active?.breakMillis(now) ?: 0L
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val container = application.appContainer
@@ -53,18 +58,35 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val tick = MutableStateFlow(repository.now())
     private var tickJob: Job? = null
 
-    private val monthRecords = repository.recordsFrom(
-        YearMonth.from(LocalDate.now(repository.zone)).atDay(1).minusDays(7),
-    )
+    /**
+     * The query window, recomputed whenever the calendar day or the week-start
+     * setting changes.
+     *
+     * The window is derived from both (WorkAggregator.summaryWindow) rather
+     * than fixed when the ViewModel is built: a screen left open across
+     * midnight - or across a month boundary - would otherwise keep querying
+     * yesterday's range, and a week-start change would not take effect until
+     * the screen was recreated.
+     */
+    private val windowRecords: Flow<List<WorkRecord>> =
+        combine(
+            container.settingsRepository.settings.map { it.weekStart }.distinctUntilChanged(),
+            tick.map { it.localDate }.distinctUntilChanged(),
+        ) { weekStart, today -> weekStart to today }
+            .distinctUntilChanged()
+            .flatMapLatest { (weekStart, today) ->
+                val window = WorkAggregator.summaryWindow(today, weekStart)
+                repository.recordsBetween(window.start, window.endInclusive.plusDays(1))
+            }
 
     val uiState: StateFlow<HomeUiState> =
         combine(
             repository.activeRecord,
-            monthRecords,
+            windowRecords,
             container.settingsRepository.settings,
             tick,
         ) { active, records, settings, now ->
-            val today = LocalDate.now(repository.zone)
+            val today = now.localDate
             HomeUiState(
                 active = active,
                 now = now,

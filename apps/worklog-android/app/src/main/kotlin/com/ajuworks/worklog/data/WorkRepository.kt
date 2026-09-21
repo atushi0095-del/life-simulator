@@ -47,6 +47,17 @@ class WorkRepository(
         return dao.observeBetween(from, Long.MAX_VALUE).map { rows -> rows.map { it.toDomain() } }
     }
 
+    /**
+     * Sessions clocked in on or after [from] and before [until], both local
+     * dates. Used for the home screen's one-query window; see
+     * [com.ajuworks.worklog.core.WorkAggregator.summaryWindow].
+     */
+    fun recordsBetween(from: LocalDate, until: LocalDate): Flow<List<WorkRecord>> {
+        val fromMillis = from.atStartOfDay(zone).toInstant().toEpochMilli()
+        val untilMillis = until.atStartOfDay(zone).toInstant().toEpochMilli()
+        return dao.observeBetween(fromMillis, untilMillis).map { rows -> rows.map { it.toDomain() } }
+    }
+
     fun record(id: Long): Flow<WorkRecord?> = dao.observeById(id).map { it?.toDomain() }
 
     val earliestWorkDate: Flow<LocalDate?> = dao.observeEarliestStart().map { millis ->

@@ -148,6 +148,27 @@ kotlin {
     }
 }
 
+/**
+ * Robolectric runs the real Android runtime in this JVM, and Android's
+ * ApplicationSharedMemory reaches into FileDescriptor's internals. On a
+ * modular JDK that is denied by default:
+ *
+ *   RuntimeException: Failed to interact with raw FileDescriptor internals
+ *   caused by: IllegalAccessException: ... cannot access class
+ *   jdk.internal.access.SharedSecrets (in module java.base)
+ *
+ * These flags grant exactly that access, and only to the unit test JVM.
+ */
+tasks.withType<Test>().configureEach {
+    jvmArgs(
+        "--add-exports=java.base/jdk.internal.access=ALL-UNNAMED",
+        "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",
+        "--add-opens=java.base/java.io=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang=ALL-UNNAMED",
+        "--add-opens=java.base/java.util=ALL-UNNAMED",
+    )
+}
+
 ksp {
     // Checked-in schemas make Room migrations reviewable in the diff.
     arg("room.schemaLocation", "$projectDir/schemas")

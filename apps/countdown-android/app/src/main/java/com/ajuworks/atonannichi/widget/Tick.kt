@@ -30,6 +30,12 @@ import java.time.ZonedDateTime
  */
 class TickReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        // The manifest filter lists protected system broadcasts, but the alarm
+        // also arrives here with our own action, and an intent with no action
+        // at all would otherwise be accepted. Only act on what we registered
+        // for.
+        if (intent.action !in HANDLED_ACTIONS) return
+
         val pending = goAsync()
         WidgetUpdater.scope.launch {
             try {
@@ -38,6 +44,17 @@ class TickReceiver : BroadcastReceiver() {
                 pending.finish()
             }
         }
+    }
+
+    private companion object {
+        val HANDLED_ACTIONS = setOf(
+            Tick.ACTION,
+            Intent.ACTION_BOOT_COMPLETED,
+            Intent.ACTION_TIME_CHANGED,
+            Intent.ACTION_TIMEZONE_CHANGED,
+            Intent.ACTION_MY_PACKAGE_REPLACED,
+            Intent.ACTION_LOCALE_CHANGED,
+        )
     }
 }
 

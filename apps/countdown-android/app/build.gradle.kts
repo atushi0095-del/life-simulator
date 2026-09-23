@@ -143,6 +143,19 @@ android {
 
     testOptions {
         unitTests.isIncludeAndroidResources = true
+
+        // Robolectric's SDK 36 sandbox reaches into jdk.internal.access to set
+        // up a FileDescriptor, which a JDK 17+ runtime refuses by default
+        // ("Failed to interact with raw FileDescriptor internals"). The module
+        // has to be opened explicitly or every Robolectric test errors before
+        // its first line runs.
+        unitTests.all { test ->
+            test.jvmArgs(
+                "--add-exports=java.base/jdk.internal.access=ALL-UNNAMED",
+                "--add-opens=java.base/java.io=ALL-UNNAMED",
+                "--add-opens=java.base/java.lang=ALL-UNNAMED",
+            )
+        }
     }
 
     lint {

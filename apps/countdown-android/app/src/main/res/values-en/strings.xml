@@ -43,7 +43,10 @@
     <string name="field_notify">Notifications</string>
     <string name="notify_on_day">On the day</string>
     <string name="notify_day_before">Day before</string>
-    <string name="notify_n_days">%1$d days before</string>
+    <plurals name="notify_n_days">
+        <item quantity="one">%1$d day before</item>
+        <item quantity="other">%1$d days before</item>
+    </plurals>
     <string name="field_memo">Memo (optional)</string>
     <string name="save">Save</string>
     <string name="delete">Delete</string>

@@ -43,7 +43,9 @@
     <string name="field_notify">通知</string>
     <string name="notify_on_day">当日</string>
     <string name="notify_day_before">前日</string>
-    <string name="notify_n_days">%1$d日前</string>
+    <plurals name="notify_n_days">
+        <item quantity="other">%1$d日前</item>
+    </plurals>
     <string name="field_memo">メモ（任意）</string>
     <string name="save">保存する</string>
     <string name="delete">削除</string>

@@ -52,6 +52,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -188,7 +189,7 @@ fun EditScreen(
                                 when (off) {
                                     0 -> stringResource(R.string.notify_on_day)
                                     1 -> stringResource(R.string.notify_day_before)
-                                    else -> stringResource(R.string.notify_n_days, off)
+                                    else -> pluralStringResource(R.plurals.notify_n_days, off, off)
                                 },
                             )
                         },

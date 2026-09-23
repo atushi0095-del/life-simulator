@@ -13,6 +13,7 @@
 - アプリ側の単体テスト（Robolectric）: `./gradlew :app:testDebugUnitTest`
 - 計装テスト: `./gradlew :app:connectedDebugAndroidTest`（実機/エミュレータ必要）
 - lint: `./gradlew :app:lint`（`warningsAsErrors`）
+- 計装テスト（実機/エミュレータ）は CI の別ジョブで API 36 エミュレータ上で実行する（このPCでは Android 36 のシステムイメージを取得できないため）。
 - 署名済みAAB: Actions の `countdown-signed-release` アーティファクト
   （`countdown-release-UNSIGNED` は debug 署名なので公開成果物ではない）
 

@@ -1,3 +1,9 @@
+## 2026-09-23 完了 / Claude Code（あと何日 countdown-android をリポジトリへ移植・CI署名）
+- 追加: `apps/countdown-android/`（com.ajuworks.atonannichi, versionCode 1 / 1.0.0, minSdk 26 / compile・target 36）。ローカルで開発・実機確認済みのアプリを WorkLog と同じ構成へ再編（`:core` 純Kotlin＋SDKがある時だけ `:app` を include）
+- CI: `.github/workflows/countdown-android.yml`。core/app テスト・lint・debug/release・AAB・署名検証まで。Secrets があるのに Ajuworks upload key（SHA-256 20:72:12:77:…:CF:91:4F）で署名されていなければ FAIL。成果物は `countdown-signed-release`。計装テストは API 36 エミュレータの別ジョブ
+- 直した不具合: Robolectric の SDK36 サンドボックス用に JDKモジュール開放、英語で「1 days」になる文言を plurals 化（通知本文・通知オフセット）、TickReceiver が action 未検証で任意の intent を処理していた点、小ウィジェットの 10sp、KTX 置換ほか lint 19件
+- 未解決: AdMob 本番ID未設定（テスト広告でビルド）。Play Console 操作は未実施
+
 # AGENT_HANDOFF_LOG
 
 エージェント作業の引き継ぎ記録。新しい作業が終わったら **末尾に追記** すること。

@@ -1,0 +1,302 @@
+name: Countdown Android
+
+# The Android SDK cannot be downloaded from the agent sandbox that authors this
+# repo, so this workflow is where the "あと何日" module is actually compiled,
+# tested, linted, bundled and signed.
+on:
+  workflow_dispatch:
+  push:
+    branches: ['**']
+    paths:
+      - 'apps/countdown-android/**'
+      - '.github/workflows/countdown-android.yml'
+  pull_request:
+    paths:
+      - 'apps/countdown-android/**'
+      - '.github/workflows/countdown-android.yml'
+
+concurrency:
+  group: countdown-android-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PROJECT_DIR: apps/countdown-android
+  # The certificate of the shared Ajuworks upload key. The bundle is checked
+  # against this, so a wrong key fails the build instead of reaching Play.
+  EXPECTED_SHA256: '20:72:12:77:F2:6D:B6:50:42:38:15:E5:A4:78:AF:77:95:21:90:A3:26:1B:6A:B7:B9:1F:FE:34:38:CF:91:4F'
+
+jobs:
+  build:
+    name: Build, test and bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      # Java 21, not 17: Robolectric refuses to build a sandbox for Android SDK
+      # 36 on anything older. The app's own bytecode target stays at 17.
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: ''
+
+      - name: Install SDK packages
+        run: |
+          set -euo pipefail
+          sdkmanager --install \
+            "platform-tools" \
+            "platforms;android-36" \
+            "build-tools;36.0.0"
+          sdkmanager --list_installed
+
+      - name: Confirm the SDK is visible to Gradle
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          set -euo pipefail
+          # settings.gradle.kts only includes :app when an SDK is present, so a
+          # missing SDK would silently skip the Android module rather than fail.
+          ./gradlew projects --no-daemon | tee /tmp/projects.txt
+          grep -q "Project ':app'" /tmp/projects.txt \
+            || { echo "::error::':app' was not included - the Android SDK was not detected."; exit 1; }
+
+      - name: Report AdMob configuration
+        env:
+          ADMOB_APP_ID: ${{ secrets.COUNTDOWN_ADMOB_APP_ID }}
+        run: |
+          set -euo pipefail
+          # No values are printed. Without production IDs the build falls back
+          # to Google's public test IDs - a valid build, just not one that can
+          # serve live ads.
+          if [ -n "${ADMOB_APP_ID:-}" ]; then
+            echo "ADMOB_CONFIGURED=true" >> "$GITHUB_ENV"
+            echo "Production AdMob IDs supplied."
+          else
+            echo "ADMOB_CONFIGURED=false" >> "$GITHUB_ENV"
+            echo "::warning::No production AdMob IDs configured - building with Google test ad IDs."
+          fi
+
+      - name: Core unit tests (no Android SDK needed)
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: ./gradlew :core:test --no-daemon --stacktrace
+
+      - name: Assemble debug
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
+
+      - name: App unit tests
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: ./gradlew :app:testDebugUnitTest --no-daemon --stacktrace
+
+      - name: Lint
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: ./gradlew :app:lint --no-daemon --stacktrace
+
+      # The keystore never exists in the repo. Without the secret the build
+      # falls back to the debug signature, so a bundle is still produced - it
+      # just cannot be uploaded to Play, and the artifact name says so.
+      - name: Restore upload keystore
+        id: signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.COUNTDOWN_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.COUNTDOWN_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.COUNTDOWN_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.COUNTDOWN_KEY_PASSWORD }}
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          set -euo pipefail
+          if [ -z "${KEYSTORE_BASE64:-}" ]; then
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::No upload keystore in secrets - the release bundle will carry the debug signature and is NOT uploadable to Play."
+            exit 0
+          fi
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > upload-keystore.jks
+          # Written, never echoed. keystore.properties is git-ignored.
+          umask 077
+          {
+            echo "store.file=upload-keystore.jks"
+            echo "store.password=${KEYSTORE_PASSWORD}"
+            echo "key.alias=${KEY_ALIAS}"
+            echo "key.password=${KEY_PASSWORD}"
+          } > keystore.properties
+          echo "signed=true" >> "$GITHUB_OUTPUT"
+          echo "Upload keystore restored."
+
+      - name: Assemble release (R8 / minify enabled)
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: ./gradlew :app:assembleRelease --no-daemon --stacktrace
+
+      - name: Bundle release (AAB)
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: ./gradlew :app:bundleRelease --no-daemon --stacktrace
+
+      # Assert the signature rather than trusting that it happened: a stale
+      # configuration-cache entry or a mistyped secret would otherwise produce a
+      # debug-signed bundle that looks like a successful release build.
+      - name: Verify the bundle signature
+        working-directory: ${{ env.PROJECT_DIR }}
+        env:
+          EXPECT_SIGNED: ${{ steps.signing.outputs.signed }}
+        run: |
+          set -uo pipefail
+          AAB=app/build/outputs/bundle/release/app-release.aab
+          if [ ! -f "$AAB" ]; then
+            echo "::error::No AAB was produced."
+            exit 1
+          fi
+
+          echo "--- jarsigner -verify ---"
+          jarsigner -verify -verbose:summary -certs "$AAB" | tail -20
+          echo
+
+          echo "--- certificate (public, no key material) ---"
+          CERT=$(keytool -printcert -jarfile "$AAB")
+          echo "$CERT" | grep -E "Owner:|Issuer:|Valid |SHA256:"
+          echo
+
+          if [ "${EXPECT_SIGNED:-false}" != "true" ]; then
+            if echo "$CERT" | grep -q "CN=Android Debug"; then
+              echo "::warning::This bundle is DEBUG-SIGNED. Configure the signing secrets to produce a publishable build."
+              exit 0
+            fi
+            echo "::error::The bundle is signed by a certificate this job did not configure."
+            exit 1
+          fi
+
+          if echo "$CERT" | grep -q "CN=Android Debug"; then
+            echo "::error::An upload keystore was supplied, but the bundle carries the Android debug certificate. Not publishable - failing."
+            exit 1
+          fi
+
+          # Identity, not just "not debug": only the shared Ajuworks upload key
+          # can ever be accepted by Play for this package.
+          if ! echo "$CERT" | grep -q "SHA256: ${EXPECTED_SHA256}"; then
+            echo "::error::The bundle is signed by an unexpected certificate. Expected SHA-256 ${EXPECTED_SHA256}."
+            exit 1
+          fi
+          echo "Signed with the Ajuworks upload key (SHA-256 matches)."
+
+      - name: Clean up signing material
+        if: always()
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: rm -f upload-keystore.jks keystore.properties
+
+      - name: Upload release artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          # The name states whether the bundle is publishable, so an unsigned
+          # build cannot be mistaken for a release one after download.
+          name: ${{ steps.signing.outputs.signed == 'true' && 'countdown-signed-release' || 'countdown-release-UNSIGNED' }}
+          if-no-files-found: warn
+          retention-days: 30
+          path: |
+            apps/countdown-android/app/build/outputs/bundle/release/*.aab
+            apps/countdown-android/app/build/outputs/apk/release/*.apk
+            apps/countdown-android/app/build/outputs/apk/debug/*.apk
+            apps/countdown-android/app/build/outputs/mapping/release/mapping.txt
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: countdown-reports
+          if-no-files-found: warn
+          retention-days: 30
+          path: |
+            apps/countdown-android/app/build/reports/**
+            apps/countdown-android/core/build/reports/**
+            apps/countdown-android/app/build/test-results/**
+            apps/countdown-android/core/build/test-results/**
+
+      # Artifact storage is not reachable from the environment that maintains
+      # this workflow, so a failure has to be legible in the log itself.
+      - name: Summarize failures
+        if: failure()
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          set -uo pipefail
+          python3 - <<'PY'
+          import glob, xml.etree.ElementTree as ET
+
+          found = False
+          for path in sorted(glob.glob("**/test-results/**/*.xml", recursive=True)):
+              try:
+                  root = ET.parse(path).getroot()
+              except ET.ParseError:
+                  continue
+              for case in root.iter("testcase"):
+                  for bad in list(case.findall("failure")) + list(case.findall("error")):
+                      found = True
+                      print("=" * 78)
+                      print(f'{case.get("classname")}.{case.get("name")}')
+                      print("-" * 78)
+                      print((bad.get("message") or "").strip()[:800])
+                      for line in (bad.text or "").strip().splitlines()[:25]:
+                          print("   ", line[:200])
+                      print()
+          if not found:
+              print("No failing test cases found in the JUnit XML.")
+
+          print()
+          print("#" * 78)
+          print("# Lint")
+          print("#" * 78)
+          lint = False
+          for path in sorted(glob.glob("**/reports/lint-results*.xml", recursive=True)):
+              try:
+                  root = ET.parse(path).getroot()
+              except ET.ParseError:
+                  continue
+              for issue in root.iter("issue"):
+                  if issue.get("severity", "") not in ("Error", "Fatal"):
+                      continue
+                  lint = True
+                  loc = issue.find("location")
+                  where = f'{loc.get("file", "")}:{loc.get("line", "?")}' if loc is not None else ""
+                  print(f'[{issue.get("severity")}] {issue.get("id")}  {where}')
+                  print(f'    {(issue.get("message") or "").strip()[:400]}')
+          if not lint:
+              print("No lint errors found (the failure may be a warning promoted by warningsAsErrors).")
+          PY
+
+      - name: Build summary
+        if: always()
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          set -uo pipefail
+          AAB=app/build/outputs/bundle/release/app-release.aab
+          APK=$(ls app/build/outputs/apk/release/*.apk 2>/dev/null | head -1 || true)
+
+          {
+            echo "### あと何日 (countdown) build"
+            echo
+            if [ -f "$AAB" ]; then
+              echo "| | |"
+              echo "|---|---|"
+              echo "| AAB size | $(du -h "$AAB" | cut -f1) ($(stat -c%s "$AAB") bytes) |"
+              [ -n "$APK" ] && echo "| APK size | $(du -h "$APK" | cut -f1) ($(stat -c%s "$APK") bytes) |"
+              echo "| Signed with upload key | ${{ steps.signing.outputs.signed }} |"
+              echo "| Production AdMob IDs | ${ADMOB_CONFIGURED:-false} |"
+            else
+              echo "No AAB was produced."
+            fi
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+          [ -f "$AAB" ] || exit 0
+          echo
+          echo "Signing certificate (public, no key material):"
+          keytool -printcert -jarfile "$AAB" | grep -E "Owner:|Issuer:|Valid|SHA256:" || true

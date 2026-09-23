@@ -1,0 +1,21 @@
+# Build output
+build/
+.gradle/
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Local environment
+local.properties
+.idea/
+*.iml
+.cxx/
+
+# Signing material. Never commit a keystore or its passwords.
+keystore.properties
+*.jks
+*.keystore
+
+# Kotlin build tooling scratch
+.kotlin/

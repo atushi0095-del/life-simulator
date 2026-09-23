@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">あと何日</string>
+    <string name="widget_small_label">あと何日（小）</string>
+    <string name="widget_medium_label">あと何日（中）</string>
+    <string name="widget_large_label">あと何日（大）</string>
+    <string name="widget_description">楽しみな日までの日数をホーム画面に表示します</string>
+    <string name="preview_title">沖縄旅行まで</string>
+
+    <string name="headline_until">%1$sまで</string>
+    <string name="headline_since">%1$sから</string>
+    <string name="unit_days">DAYS</string>
+    <string name="unit_day">DAY</string>
+    <string name="unit_ago">日前</string>
+    <string name="today_word">TODAY</string>
+    <string name="ended_word">終了</string>
+
+    <string name="add_event">イベントを追加</string>
+    <string name="edit_event">イベントを編集</string>
+    <string name="add_first">楽しみな日を追加</string>
+    <string name="empty_title">楽しみにしている日を\n登録しましょう</string>
+    <string name="empty_sub">旅行、ライブ、誕生日、納車、結婚式…。ホーム画面のウィジェットで毎日カウントダウンできます。</string>
+    <string name="ended_section">終了したイベント</string>
+    <string name="widget_hint">ホーム画面を長押し →「ウィジェット」から「あと何日」を置けます</string>
+
+    <string name="field_title">タイトル</string>
+    <string name="title_placeholder">例: 沖縄旅行</string>
+    <string name="sample_title">沖縄旅行</string>
+    <string name="err_title">タイトルを入力してください</string>
+    <string name="field_date">日付</string>
+    <string name="date_pattern">yyyy年M月d日(E)</string>
+    <string name="field_time">時刻</string>
+    <string name="field_icon">アイコン</string>
+    <string name="field_photo">写真</string>
+    <string name="photo_choose">写真を選ぶ</string>
+    <string name="photo_change">写真を変える</string>
+    <string name="photo_remove">写真を外す</string>
+    <string name="photo_design_hint">写真を選ぶと Photo デザインで表示されます。写真がないときは Soft で表示します。</string>
+    <string name="field_design">デザイン</string>
+    <string name="field_after">当日を過ぎたら</string>
+    <string name="after_count_up">「○日前」と表示</string>
+    <string name="after_end">終了にする</string>
+    <string name="field_notify">通知</string>
+    <string name="notify_on_day">当日</string>
+    <string name="notify_day_before">前日</string>
+    <string name="notify_n_days">%1$d日前</string>
+    <string name="field_memo">メモ（任意）</string>
+    <string name="save">保存する</string>
+    <string name="delete">削除</string>
+    <string name="delete_confirm">このイベントを削除しますか？</string>
+
+    <string name="channel_countdown">カウントダウン</string>
+    <string name="notify_days">%1$sまで、あと%2$d日です</string>
+    <string name="notify_tomorrow">明日は%1$sです</string>
+    <string name="notify_today">今日は%1$sの日です</string>
+
+    <string name="widget_config_title">ウィジェットの設定</string>
+    <string name="widget_pick_event">表示するイベント</string>
+    <string name="widget_place">この内容で置く</string>
+    <string name="widget_no_events">まだイベントがありません。先にアプリでイベントを追加してください。</string>
+    <string name="widget_choose">タップして設定</string>
+
+    <string name="settings_title">設定</string>
+    <string name="notifications_off">通知が許可されていません</string>
+    <string name="notifications_off_sub">タップして通知を許可すると「あと○日」をお知らせします</string>
+    <string name="widget_how_title">ウィジェットの置き方</string>
+    <string name="widget_how_body">ホーム画面の何もないところを長押し →「ウィジェット」→「あと何日」から、小・中・大のいずれかを置き、表示するイベントとデザインを選びます。置いたウィジェットをタップするとイベントを開けます。</string>
+    <string name="privacy_policy">プライバシーポリシー</string>
+    <string name="ad_privacy_options">広告のプライバシー設定</string>
+    <string name="version">バージョン</string>
+    <string name="settings_on_device">イベントと写真はこの端末の中だけに保存されます。アカウント登録は不要で、外部へ送信することはありません。ウィジェットに広告は表示されません。</string>
+
+    <string name="ok">OK</string>
+    <string name="cancel">キャンセル</string>
+    <string name="back">戻る</string>
+
+    <string name="privacy_policy_body">あと何日（以下「本アプリ」）の個人情報の取り扱いについて説明します。\n\n1. データは端末内に保存します\nイベントのタイトル・日付・メモ・写真などは、原則としてすべてユーザーの端末内にのみ保存され、処理も端末内で行われます。写真は選んだものだけをアプリ専用の領域へ縮小してコピーし、開発者のサーバーや第三者へ送信することはありません。開発者はサーバーを運用していません。\n\n2. 取得しない情報\n本アプリは、アカウント、氏名、メールアドレス、電話番号、位置情報を取得しません。端末内の写真の一覧を読み取る権限も要求しません。\n\n3. 通知\n「あと○日」の通知は端末内で作られるローカル通知で、サーバーからの通知は使いません。\n\n4. 広告について\n本アプリは広告配信のため Google の Google Mobile Ads SDK（AdMob）を使用しています（ウィジェットには広告を表示しません）。同SDKは、広告の配信・効果測定・分析・不正防止のために、次の情報を収集し Google と共有します（Google の公開情報に基づく）。\n・広告ID・アプリセットIDなどの端末の識別子\n・IPアドレス（おおよその位置の推定に使われることがあります）\n・アプリの起動、タップ、広告の表示などの操作情報\n・アプリと同SDKの動作状況（起動時間、応答停止率、電力使用量など）の診断情報\nこれらは通信時に暗号化（TLS）されます。本アプリの機能で扱うデータ（イベントと写真）は、この広告の仕組みには渡しません。取り扱いは Google のポリシーに従います。\n・Google のプライバシーポリシー: https://policies.google.com/privacy\n・Google によるデータの使用: https://policies.google.com/technologies/partner-sites\n欧州経済領域・英国などでは、初回起動時に広告に関する同意を確認し、設定画面の「広告のプライバシー設定」から変更できます。\n\n5. データの削除\nイベントの削除、またはアプリのアンインストールで、保存した写真を含めて削除されます。\n\n6. 改定\n内容を改定する場合は、本アプリまたは公開ページでお知らせします。\n\n制定日: 2026年9月18日\n運営: Aju Works</string>
+</resources>

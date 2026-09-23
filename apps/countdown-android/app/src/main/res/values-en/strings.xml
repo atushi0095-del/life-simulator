@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Days Until</string>
+    <string name="widget_small_label">Days Until (small)</string>
+    <string name="widget_medium_label">Days Until (medium)</string>
+    <string name="widget_large_label">Days Until (large)</string>
+    <string name="widget_description">Shows the days left until the day you are looking forward to</string>
+    <string name="preview_title">Trip to Okinawa</string>
+
+    <string name="headline_until">Until %1$s</string>
+    <string name="headline_since">Since %1$s</string>
+    <string name="unit_days">DAYS</string>
+    <string name="unit_day">DAY</string>
+    <string name="unit_ago">DAYS AGO</string>
+    <string name="today_word">TODAY</string>
+    <string name="ended_word">Ended</string>
+
+    <string name="add_event">Add event</string>
+    <string name="edit_event">Edit event</string>
+    <string name="add_first">Add a day to look forward to</string>
+    <string name="empty_title">Add the day\nyou are looking forward to</string>
+    <string name="empty_sub">Trips, concerts, birthdays, a new car, a wedding… Count down every day with a home screen widget.</string>
+    <string name="ended_section">Ended events</string>
+    <string name="widget_hint">Long-press your home screen → Widgets → Days Until</string>
+
+    <string name="field_title">Title</string>
+    <string name="title_placeholder">e.g. Trip to Okinawa</string>
+    <string name="sample_title">Trip to Okinawa</string>
+    <string name="err_title">Enter a title</string>
+    <string name="field_date">Date</string>
+    <string name="date_pattern">EEE, MMM d, yyyy</string>
+    <string name="field_time">Time</string>
+    <string name="field_icon">Icon</string>
+    <string name="field_photo">Photo</string>
+    <string name="photo_choose">Choose a photo</string>
+    <string name="photo_change">Change photo</string>
+    <string name="photo_remove">Remove photo</string>
+    <string name="photo_design_hint">Choose a photo to use the Photo design. Without a photo, Soft is used.</string>
+    <string name="field_design">Design</string>
+    <string name="field_after">After the day</string>
+    <string name="after_count_up">Show days since</string>
+    <string name="after_end">Mark as ended</string>
+    <string name="field_notify">Notifications</string>
+    <string name="notify_on_day">On the day</string>
+    <string name="notify_day_before">Day before</string>
+    <string name="notify_n_days">%1$d days before</string>
+    <string name="field_memo">Memo (optional)</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="delete_confirm">Delete this event?</string>
+
+    <string name="channel_countdown">Countdown</string>
+    <string name="notify_days">%2$d days until %1$s</string>
+    <string name="notify_tomorrow">%1$s is tomorrow</string>
+    <string name="notify_today">Today is %1$s</string>
+
+    <string name="widget_config_title">Widget settings</string>
+    <string name="widget_pick_event">Event to show</string>
+    <string name="widget_place">Place widget</string>
+    <string name="widget_no_events">No events yet. Add an event in the app first.</string>
+    <string name="widget_choose">Tap to set up</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="notifications_off">Notifications are not allowed</string>
+    <string name="notifications_off_sub">Allow notifications to get countdown reminders</string>
+    <string name="widget_how_title">How to add a widget</string>
+    <string name="widget_how_body">Long-press an empty area of your home screen → Widgets → Days Until, place the small, medium or large widget, then choose an event and design. Tap the widget to open the event.</string>
+    <string name="privacy_policy">Privacy policy</string>
+    <string name="ad_privacy_options">Ad privacy settings</string>
+    <string name="version">Version</string>
+    <string name="settings_on_device">Events and photos are stored only on this device. No account is needed and nothing is uploaded. Widgets never show ads.</string>
+
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="back">Back</string>
+
+    <string name="privacy_policy_body">This explains how Days Until (the \"App\") handles personal information.\n\n1. Data stays on your device\nEvent titles, dates, memos and photos are, in principle, stored and processed only on your device. Only the photos you pick are copied, resized, into the App\'s private storage; they are never sent to the developer or to third parties. The developer does not operate any servers.\n\n2. Information not collected\nThe App does not collect accounts, names, email addresses, phone numbers or location, and does not request permission to read your photo library.\n\n3. Notifications\nCountdown reminders are local notifications created on the device. No server push is used.\n\n4. Advertising\nThe App uses Google Mobile Ads SDK (AdMob) to show ads (never in widgets). The SDK collects the following and shares it with Google for advertising, measurement, analytics and fraud prevention (based on Google\'s published information):\n- Device identifiers such as the advertising ID and app set ID\n- IP address (may be used to estimate approximate location)\n- Interactions such as app launches, taps and ad views\n- Diagnostics on app and SDK performance (launch time, hang rate, energy use)\nThis data is encrypted in transit (TLS). Data handled by the App\'s features (your events and photos) is not passed to this advertising system. It is handled under Google\'s policies.\n- Google Privacy Policy: https://policies.google.com/privacy\n- How Google uses data: https://policies.google.com/technologies/partner-sites\nIn the EEA, the UK and some other regions, consent for ads is requested on first launch and can be changed under \"Ad privacy settings\" in Settings.\n\n5. Deleting data\nDeleting an event, or uninstalling the App, deletes its data including saved photos.\n\n6. Changes\nIf this policy changes, we will announce it in the App or on the public page.\n\nEffective: September 18, 2026\nOperator: Aju Works</string>
+</resources>

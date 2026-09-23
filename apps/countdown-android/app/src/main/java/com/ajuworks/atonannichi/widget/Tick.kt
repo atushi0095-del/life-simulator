@@ -87,7 +87,7 @@ object Tick {
         val text = when (offset) {
             0 -> context.getString(R.string.notify_today, e.title)
             1 -> context.getString(R.string.notify_tomorrow, e.title)
-            else -> context.getString(R.string.notify_days, e.title, offset)
+            else -> context.resources.getQuantityString(R.plurals.notify_days, offset, e.title, offset)
         }
         val open = PendingIntent.getActivity(
             context, e.id.toInt(),

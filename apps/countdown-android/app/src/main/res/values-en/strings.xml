@@ -53,7 +53,10 @@
     <string name="delete_confirm">Delete this event?</string>
 
     <string name="channel_countdown">Countdown</string>
-    <string name="notify_days">%2$d days until %1$s</string>
+    <plurals name="notify_days">
+        <item quantity="one">%2$d day until %1$s</item>
+        <item quantity="other">%2$d days until %1$s</item>
+    </plurals>
     <string name="notify_tomorrow">%1$s is tomorrow</string>
     <string name="notify_today">Today is %1$s</string>
 

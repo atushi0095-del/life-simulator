@@ -52,7 +52,9 @@
     <string name="delete_confirm">このイベントを削除しますか？</string>
 
     <string name="channel_countdown">カウントダウン</string>
-    <string name="notify_days">%1$sまで、あと%2$d日です</string>
+    <plurals name="notify_days">
+        <item quantity="other">%1$sまで、あと%2$d日です</item>
+    </plurals>
     <string name="notify_tomorrow">明日は%1$sです</string>
     <string name="notify_today">今日は%1$sの日です</string>
 

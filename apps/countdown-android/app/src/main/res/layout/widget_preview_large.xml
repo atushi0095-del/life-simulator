@@ -22,7 +22,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:text="42"
+            android:text="@string/preview_number"
             android:textColor="#FFFFFF"
             android:textSize="48sp"
             android:textStyle="bold" />
@@ -31,7 +31,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
-            android:text="DAYS"
+            android:text="@string/unit_days"
             android:textColor="#FFFFFF"
             android:textSize="12sp"
             android:textStyle="bold" />

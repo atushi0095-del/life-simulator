@@ -19,6 +19,9 @@ import com.ajuworks.atonannichi.data.Photos
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.get
+import androidx.core.graphics.scale
 
 /**
  * カードの背景を描く（ウィジェットとアプリ内で共通）。文字は重ねない。
@@ -38,7 +41,7 @@ object CardRenderer {
     fun render(context: Context, event: EventEntity?, design: Design, width: Int, height: Int, cornerPx: Float): Bitmap {
         val w = width.coerceAtLeast(8)
         val h = height.coerceAtLeast(8)
-        val out = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val out = createBitmap(w, h)
         val canvas = Canvas(out)
         val clip = Path().apply { addRoundRect(RectF(0f, 0f, w.toFloat(), h.toFloat()), cornerPx, cornerPx, Path.Direction.CW) }
         canvas.clipPath(clip)
@@ -69,8 +72,8 @@ object CardRenderer {
     private fun drawPhoto(canvas: Canvas, photo: Bitmap, w: Int, h: Int) {
         val sharp = centerCrop(photo, w, h)
         // 縮小→拡大でぼかした版
-        val small = Bitmap.createScaledBitmap(sharp, (w / 12).coerceAtLeast(2), (h / 12).coerceAtLeast(2), true)
-        val blurred = Bitmap.createScaledBitmap(small, w, h, true)
+        val small = sharp.scale((w / 12).coerceAtLeast(2), (h / 12).coerceAtLeast(2))
+        val blurred = small.scale(w, h)
         small.recycle()
         canvas.drawBitmap(blurred, 0f, 0f, null)
         blurred.recycle()
@@ -104,16 +107,16 @@ object CardRenderer {
         val ch = (h / scale).roundToInt().coerceIn(1, src.height)
         val left = (src.width - cw) / 2
         val top = (src.height - ch) / 2
-        val out = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val out = createBitmap(w, h)
         Canvas(out).drawBitmap(src, Rect(left, top, left + cw, top + ch), Rect(0, 0, w, h), Paint(Paint.FILTER_BITMAP_FLAG))
         return out
     }
 
     private fun meanLuminance(b: Bitmap): Double {
-        val s = Bitmap.createScaledBitmap(b, 16, 16, true)
+        val s = b.scale(16, 16)
         var sum = 0.0
         for (y in 0 until 16) for (x in 0 until 16) {
-            val c = s.getPixel(x, y)
+            val c = s[x, y]
             sum += Readability.luminance(Color.red(c), Color.green(c), Color.blue(c))
         }
         s.recycle()

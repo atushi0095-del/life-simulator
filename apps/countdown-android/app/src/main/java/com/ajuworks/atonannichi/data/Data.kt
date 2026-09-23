@@ -18,6 +18,7 @@ import com.ajuworks.atonannichi.core.NotifyRules
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 import java.time.LocalTime
+import androidx.core.content.edit
 
 @Entity(tableName = "event")
 data class EventEntity(
@@ -81,7 +82,7 @@ class WidgetConfigStore(context: Context) {
         return Config(ev, Design.of(sp.getString("d$widgetId", null)))
     }
 
-    fun put(widgetId: Int, c: Config) = sp.edit().putLong("e$widgetId", c.eventId).putString("d$widgetId", c.design.name).apply()
+    fun put(widgetId: Int, c: Config) = sp.edit { putLong("e$widgetId", c.eventId).putString("d$widgetId", c.design.name) }
 
-    fun remove(widgetId: Int) = sp.edit().remove("e$widgetId").remove("d$widgetId").apply()
+    fun remove(widgetId: Int) = sp.edit { remove("e$widgetId").remove("d$widgetId") }
 }

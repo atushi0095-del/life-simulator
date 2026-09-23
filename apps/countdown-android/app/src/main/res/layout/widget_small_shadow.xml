@@ -51,7 +51,7 @@
                 android:maxLines="1"
                 android:ellipsize="end"
                 android:includeFontPadding="false"
-                android:textSize="10sp"
+                android:textSize="11sp"
                 android:shadowColor="#99000000"
                 android:shadowDx="0"
                 android:shadowDy="2"

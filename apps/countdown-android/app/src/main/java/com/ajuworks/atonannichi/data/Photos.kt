@@ -8,6 +8,7 @@ import android.net.Uri
 import androidx.exifinterface.media.ExifInterface
 import java.io.File
 import kotlin.math.max
+import androidx.core.graphics.scale
 
 /**
  * 写真はアプリ専用領域へ縮小コピーして使う（元の写真へのアクセス権が切れても表示が崩れない）。
@@ -41,7 +42,7 @@ object Photos {
         }
         val upright = if (deg != 0f) Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, Matrix().apply { postRotate(deg) }, true) else bmp
         val scale = MAX_EDGE.toFloat() / max(upright.width, upright.height)
-        val out = if (scale < 1f) Bitmap.createScaledBitmap(upright, (upright.width * scale).toInt(), (upright.height * scale).toInt(), true) else upright
+        val out = if (scale < 1f) upright.scale((upright.width * scale).toInt(), (upright.height * scale).toInt()) else upright
         val name = "p_${System.currentTimeMillis()}.jpg"
         file(context, name).outputStream().use { out.compress(Bitmap.CompressFormat.JPEG, 88, it) }
         name

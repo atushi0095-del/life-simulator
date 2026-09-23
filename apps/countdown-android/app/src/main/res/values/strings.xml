@@ -5,6 +5,7 @@
     <string name="widget_medium_label">あと何日（中）</string>
     <string name="widget_large_label">あと何日（大）</string>
     <string name="widget_description">楽しみな日までの日数をホーム画面に表示します</string>
+    <string name="preview_number" translatable="false">42</string>
     <string name="preview_title">沖縄旅行まで</string>
 
     <string name="headline_until">%1$sまで</string>

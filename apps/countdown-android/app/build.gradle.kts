@@ -162,9 +162,19 @@ android {
         abortOnError = true
         checkReleaseBuilds = true
         warningsAsErrors = true
-        // Dependency freshness is a maintenance decision, not a release
-        // blocker, and the check needs network access CI does not grant.
-        disable += setOf("GradleDependency", "NewerVersionAvailable", "AndroidGradlePluginVersion")
+        disable += setOf(
+            // Dependency freshness is a maintenance decision, not a release
+            // blocker, and the check wants network access CI does not grant.
+            "GradleDependency",
+            "NewerVersionAvailable",
+            "AndroidGradlePluginVersion",
+            // Fires because lint knows of an API level above our targetSdk. We
+            // target 36, which is what Play currently requires for new apps;
+            // raising it further is a release decision, not a lint pass.
+            "OldTargetApi",
+        )
+        htmlReport = true
+        xmlReport = true
     }
 }
 
